@@ -141,7 +141,6 @@ def geomaMCNP(figs, figs_num):
                 num=figs_num[fig][i]
                 
                 cadena+=f"    {str(num)}       {str(param[0])} {str(param[1])} {str(param[2])} {str(param[3])}\n"
-                
 
                 
 def MCNPacilindro(*param,tipo="rcc"):

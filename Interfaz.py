@@ -347,6 +347,7 @@ class interfaz(tk.Tk):
             self.figuras["esferas"].append(esfera)
             self._cambioFig()
             self._cambio()
+            
         
     def _generar_esfera(self):
         

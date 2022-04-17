@@ -12,6 +12,7 @@ from plano import plano
 import copy
 import math
 from seg_lin import seg_lin
+import numpy as np
 
 
 class poligonoConvexo(object):
@@ -33,7 +34,7 @@ class poligonoConvexo(object):
         else:
             raise TypeError("El paralelogramo requiere punto, vector, vector, no {}, {}, {}".format(type(punto_base),type(v1),type(v2)))
 
-    def __init__(self,pts,reverso=False,checar_convex=False):
+    def __init__(self,pts,reverso=False,checar_convex=True):
         puntos=copy.deepcopy(pts)
         self.puntos=sorted(set(puntos),key=puntos.index)
         #print(len(self.puntos))
@@ -46,7 +47,7 @@ class poligonoConvexo(object):
         
         self.punto_cent=self.punto_central()
 
-        if checar_convex:   
+        if not checar_convex:   
             self.ordenar_puntos_concavo()
 
         else:
@@ -77,17 +78,31 @@ class poligonoConvexo(object):
 
             if angulo_vec<0:
                 angulo_vec+=2*math.pi
-            dic_angulo_punto[angulo_vec].append(point)
-
-        for i in dic_angulo_punto.keys():
-            if len(dic_angulo_punto[i]) >1:
-                distancias=[]
-                for j in dic_angulo_punto[i]:
-                    distancias.append((j.apunta()-self.punto_cent.apunta()).magn())
-
-                distancias.sort()
-
-
+                
+            if not dic_angulo_punto[angulo_vec]:
+                dic_angulo_punto[angulo_vec]=[]
+                dic_angulo_punto[angulo_vec].append(point)
+                
+            else:
+                dic_angulo_punto[angulo_vec].append(point)
+                
+        listas_puntos=[dic_angulo_punto[ang] for ang in sorted(dic_angulo_punto)]
+        lista_puntos=[]
+        
+        def distanciaAlCentro(self, point):
+            return np.abs((self.punto_cent.apunta()-point.apunta()).magn())
+    
+        for i in listas_puntos:
+            if len(i) > 1:
+                i=sorted(i, key=distanciaAlCentro)
+                for j in i:
+                    lista_puntos.append(j)
+                    
+            else:
+                lista_puntos.append(*i)
+                
+            self.puntos=tuple(lista_puntos)
+                
 
     def ordenar_puntos(self):
 
