@@ -47,7 +47,7 @@ class poligonoConvexo(object):
         
         self.punto_cent=self.punto_central()
 
-        if not checar_convex:   
+        if checar_convex:   
             self.ordenar_puntos_concavo()
 
         else:
@@ -79,13 +79,14 @@ class poligonoConvexo(object):
             if angulo_vec<0:
                 angulo_vec+=2*math.pi
                 
-            if not dic_angulo_punto[angulo_vec]:
+            try:
+                    dic_angulo_punto[angulo_vec].append(point)
+                    
+            except KeyError:
                 dic_angulo_punto[angulo_vec]=[]
                 dic_angulo_punto[angulo_vec].append(point)
                 
-            else:
-                dic_angulo_punto[angulo_vec].append(point)
-                
+                    
         listas_puntos=[dic_angulo_punto[ang] for ang in sorted(dic_angulo_punto)]
         lista_puntos=[]
         
