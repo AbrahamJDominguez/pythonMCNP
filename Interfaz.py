@@ -333,6 +333,20 @@ class interfaz(tk.Tk):
             
         else:
             print("Por favor cierre la otra ventana emergente")
+            
+    def _generar_esfera_param(self, R, X, Y, Z):
+        esfera=poliedroConvexo.esfera(punto(X,Y,Z),R)
+        
+
+        hashes=[]
+        for i in self.figuras["esferas"]:
+            hashes.append(hash(i))
+
+
+        if hash(esfera) not in hashes:
+            self.figuras["esferas"].append(esfera)
+            self._cambioFig()
+            self._cambio()
         
     def _generar_esfera(self):
         
@@ -372,12 +386,14 @@ class interfaz(tk.Tk):
             boton.pack(side=tk.BOTTOM, padx=20, pady=20)
     
             def Take_input():
-                INPUT = inputtxt4.get("1.0", "end-1c")
-                print(INPUT)
-                if(INPUT == "120"):
-                    Output.insert(tk.END, 'Captura de datos correcta')
-                else:
-                    Output.insert(tk.END, "ERROR EN CAPTURA DE DATOS!!!")
+                try:
+                    INPUTR = float(inputtxt1.get("1.0", "end-1c"))
+                    INPUTX = float(inputtxt2.get("1.0", "end-1c"))
+                    INPUTY = float(inputtxt3.get("1.0", "end-1c"))
+                    INPUTZ = float(inputtxt4.get("1.0", "end-1c"))
+                    self._generar_esfera_param(INPUTR, INPUTX, INPUTY, INPUTZ)
+                except:
+                    Output.insert("end", "Error en la captura")
          
             l = tk.Label(self.dialogo, text = "GENERADOR DE ESFERAS")
             l1 = tk.Label(self.dialogo, text = "Radio")
