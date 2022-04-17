@@ -13,6 +13,7 @@ geometrias=(*planos, *esferas, *cilindros, *macrocuerpos)
 superficies={"p":planos,"s":esferas,"c":cilindros}
 superficiesGeom={"p":plano,"s":poliedroConvexo.esfera,"c":poliedroConvexo.cilindro}
 macros={"box":poliedroConvexo.paralelepipedo,"rcc":poliedroConvexo.cilindro,"rpp":poliedroConvexo.paralelepipedo,"sph":poliedroConvexo.esfera}
+figuras={"esferas":list(),"paralelepipedos":list(),"plano":list(),"cilindro":list()}
 
 def verificarFloatLista(lista,inicio=0,fin=-1):
     if fin == -1:
@@ -116,6 +117,33 @@ def cilindroaMCNP(cilindro):
 
 	return p, r, v
 
+def geomaMCNP(figs, figs_num):
+    
+    cadena=""
+    
+    for fig in figs:
+        if fig == "esferas":
+            for i in range(len(figs[fig])):
+                param=esferaaMCNP(figs[fig][i])
+                num=figs_num[fig][i]
+                
+                cadena+=f"    {str(num)}       {str(param[0].x)} {str(param[0].y)} {str(param[0].z)} {str(param[1])}\n"
+                
+        elif fig == "paralelepipedos":
+            pass
+        
+        elif fig == "cilindro":
+            pass
+        
+        elif fig == "plano":
+            for i in range(len(figs[fig])):
+                param=planoaMCNP(figs[fig][i])
+                num=figs_num[fig][i]
+                
+                cadena+=f"    {str(num)}       {str(param[0])} {str(param[1])} {str(param[2])} {str(param[3])}\n"
+                
+
+                
 def MCNPacilindro(*param,tipo="rcc"):
 
 	if tipo =="rcc":

@@ -102,6 +102,7 @@ class poligonoConvexo(object):
             pv = point.apunta()-self.punto_cent.apunta()
             coord_y=pv*v0
             coord_z=pv*v1
+            #print(f"{coord_y}, {coord_z}")
             angulo_vec=math.atan2(coord_z,coord_y)
 
             if angulo_vec<0:
@@ -204,5 +205,5 @@ class poligonoConvexo(object):
     def dict_punto(self):
         return dict((i+1,j) for i, j in enumerate(self.puntos))
 
-    def triangularizar_delaunay(self):
+    def triangulacion_delaunay(self):
         pass
