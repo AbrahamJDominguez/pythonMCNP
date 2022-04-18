@@ -5,6 +5,7 @@ from vector import vector
 from utilidades import FLOAT_EPS
 import numpy as np
 import copy
+#print("hola")
 
 planos=["p","px","py","pz"]
 esferas=["so","sx","sy","sz","s"]
