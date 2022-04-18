@@ -31,7 +31,8 @@ class interfaz(tk.Tk):
     TAMANO_PASO=1
 
     FONDO="#0b0b0b"
-    figuras={"esferas":list(),"paralelepipedos":list(),"plano":list(),"cilindro":list()}
+    figuras={"esferas":list(),"paralelepipedos":list(),"plano":list(),"cilindro":list(), "conot":list()}
+    figuras_num={"esferas":list(),"paralelepipedos":list(),"plano":list(),"cilindro":list(), "conot":list()}
 
     # Declara una variable de clase para contar ventanas
     
@@ -581,7 +582,8 @@ class interfaz(tk.Tk):
         try:
         
             geoms=MCNPaGeom(lecturaMCNP(self.archivo))
-            self.figuras=geoms
+            self.figuras=geoms[0]
+            self.figuras_num=geoms[1]
             self._cambioFig()
             self._cambio()
             
@@ -600,6 +602,8 @@ class interfaz(tk.Tk):
             vertices=self._manejo_geometria._vertices
             
             for geom in self.figuras:
+                if geom == "plano":
+                    continue
                 for fig in self.figuras[geom]:
                     
                     #print(hash(fig))

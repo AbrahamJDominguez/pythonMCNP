@@ -116,6 +116,29 @@ class poliedroConvexo(object):
                         
             
         return cls(tuple(lista_pgc))
+    
+    @classmethod
+    def conoTruncado(cls,cent_circulo,radio_1, radio_2, vector_alt,n=10):
+        lim_sup=copy.deepcopy(cent_circulo).mover(vector_alt)
+
+        circ_inf=poligonoConvexo.circulo(centro=cent_circulo,normal=vector_alt,radio=radio_1,n=n)
+        circ_inf_puntos=puntos_circulo(centro=cent_circulo,normal=vector_alt,radio=radio_1,n=n)
+
+        circ_sup=poligonoConvexo.circulo(centro=lim_sup,normal=vector_alt,radio=radio_2,n=n)
+        circ_sup_puntos=puntos_circulo(centro=lim_sup,normal=vector_alt,radio=radio_2,n=n)
+
+        lista_pgc=[circ_inf,circ_sup]
+        
+        #print(len(circ_sup_puntos))
+
+        for i in range(len(circ_sup_puntos)):
+            ini=i
+            fin=(i+1)%len(circ_sup_puntos)
+            lista_pgc.append(poligonoConvexo((circ_sup_puntos[ini],circ_sup_puntos[fin],circ_inf_puntos[fin],circ_inf_puntos[ini])))
+            
+                        
+            
+        return cls(tuple(lista_pgc))
 
     def __init__(self, poli_conv, checar_convex=True):
         self.poligonos_convexos=list(copy.deepcopy(poli_conv))
