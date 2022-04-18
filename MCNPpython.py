@@ -184,7 +184,9 @@ def geomaMCNP(figs, figs_num):
                 cadena+=f"    {str(num)}       s {str(param[0].x)} {str(param[0].y)} {str(param[0].z)} {str(param[1])}\n"
                 
         elif fig == "paralelepipedos":
-            pass
+            for i in range(len(figs[fig])):
+                param=esferaaMCNP(figs[fig][i])
+                num=figs_num[fig][i]
         
         elif fig == "cilindro":
             for i in range(len(figs[fig])):
