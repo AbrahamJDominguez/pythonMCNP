@@ -240,29 +240,29 @@ class interfaz(tk.Tk):
             self._cambioFig()
             self._cambio()
 
-    def _crear_linea_param(self, x1, x2, x3, y1, y2, y3):
-        linea=poliedroConvexo.paralelepipedo(punto(x1,x2,x3),vector(y1,y2,y3),vector(y1,y2,y3),vector(y1,y2,y3))
+    # def _crear_linea_param(self, x1, x2, x3, y1, y2, y3):
+    #     linea=poliedroConvexo.paralelepipedo(punto(x1,x2,x3),vector(y1,y2,y3),vector(y1,y2,y3),vector(y1,y2,y3))
         
-        hashes=[]
-        for i in self.figuras["paralelepipedos"]:
-            hashes.append(hash(i))
+    #     hashes=[]
+    #     for i in self.figuras["paralelepipedos"]:
+    #         hashes.append(hash(i))
 
-        if hash(cubo) not in hashes:
-            self.figuras["paralelepipedos"].append(linea)
-            self._cambioFig()
-            self._cambio()
+    #     if hash(cubo) not in hashes:
+    #         self.figuras["paralelepipedos"].append(linea)
+    #         self._cambioFig()
+    #         self._cambio()
     
-    def _crear_punto_param(self, X, Y, Z):
-        punto=poliedroConvexo.esfera(punto(X,Y,Z), 0)
+    # def _crear_punto_param(self, X, Y, Z):
+    #     punto=poliedroConvexo.esfera(punto(X,Y,Z), 0)
         
-        hashes=[]
-        for i in self.figuras["esferas"]:
-            hashes.append(hash(i))
+    #     hashes=[]
+    #     for i in self.figuras["esferas"]:
+    #         hashes.append(hash(i))
 
-        if hash(esfera) not in hashes:
-            self.figuras["esferas"].append(punto)
-            self._cambioFig()
-            self._cambio()
+    #     if hash(esfera) not in hashes:
+    #         self.figuras["esferas"].append(punto)
+    #         self._cambioFig()
+    #         self._cambio()
               
     def _generar_cubo(self):
         
