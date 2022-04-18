@@ -2,6 +2,9 @@ from plano import plano
 from poliedroConvexo import poliedroConvexo
 from punto import punto
 from vector import vector
+from utilidades import FLOAT_EPS
+import numpy as np
+import copy
 
 planos=["p","px","py","pz"]
 esferas=["so","sx","sy","sz","s"]
@@ -145,22 +148,22 @@ def cilindroaMCNP(cilindro):
     r=(cilindro.poligonos_convexos[0].punto_cent.apunta()-cilindro.poligonos_convexos[0].puntos[0].apunta()).magn()
     v=cilindro.poligonos_convexos[0].punto_cent.apunta()-cilindro.poligonos_convexos[1].punto_cent.apunta()
     
-    if v.paralelo(vector.x_uni()) and p.y != 0  or p.z != 0:
+    if v.paralelo(vector.x_uni()) and (np.abs(p.y) > FLOAT_EPS  or np.abs(p.z) > FLOAT_EPS):
         return (p,r,v), "c/x"
     
-    elif v.paralelo(vector.x_uni()) and p.y == 0  and p.z == 0:
+    elif v.paralelo(vector.x_uni()) and (np.abs(p.y) < FLOAT_EPS  and np.abs(p.z) < FLOAT_EPS):
         return (p,r,v), "cx"
     
-    elif v.paralelo(vector.y_uni()) and p.x != 0  or p.z != 0:
+    elif v.paralelo(vector.y_uni()) and (np.abs(p.x) > FLOAT_EPS  or np.abs(p.z) > FLOAT_EPS):
         return (p,r,v), "c/y"
     
-    elif v.paralelo(vector.y_uni()) and p.x == 0  and p.z == 0:
+    elif v.paralelo(vector.y_uni()) and (np.abs(p.x) < FLOAT_EPS  and np.abs(p.z) < FLOAT_EPS):
         return (p,r,v), "cy"
     
-    elif v.paralelo(vector.z_uni()) and p.y != 0  or p.x != 0:
+    elif v.paralelo(vector.z_uni()) and (np.abs(p.y) > FLOAT_EPS  or np.abs(p.x) > FLOAT_EPS):
         return (p,r,v), "c/x"
     
-    elif v.paralelo(vector.z_uni()) and p.y == 0  and p.x == 0:
+    elif v.paralelo(vector.z_uni()) and (np.abs(p.y) < FLOAT_EPS  and np.abs(p.x) < FLOAT_EPS):
         return (p,r,v), "cz"
     
     else:
@@ -301,11 +304,70 @@ def MCNPaParalelepipedo(*param, tipo="rpp"):
             
             return poliedroConvexo.paralelepipedo(base, vec1, vec2, vec3)
         
+def ParalelepipedoaMCNP(paral):
+    cara=paral.poligonos_convexos[0]
+    base=cara.puntos[0]
+    cara2=paral.poligonos_convexos[1]
+    vec1=cara.puntos[1].apunta()-base.apunta()
+    vec2=cara.puntos[3].apunta()-base.apunta()
+    idx=cara2.puntos.index(base)
+    
+    if idx + 1 > len(cara2.puntos)-1:
+        cand1=0
+        
+    else:
+        cand1= idx + 1
+        
+    if idx - 1 == -1:
+        cand2=len(cara2.puntos)-1
+        
+    else:
+        cand2= idx - 1
+        
+    vec3=cara2.puntos[cand1].apunta()-base.apunta()
+    
+    if vec3.paralelo(vec1) or vec3.paralelo(vec2):
+        vec3=cara2.puntos[cand2].apunta()-base.apunta()
+        if vec3.paralelo(vec1) or vec3.paralelo(vec2):
+            raise ValueError("Error encontrado")
+            
+    if (vec1.paralelo(vector.x_uni()) or vec1.paralelo(vector.y_uni()) or vec1.paralelo(vector.z_uni()))\
+    and (vec2.paralelo(vector.x_uni()) or vec2.paralelo(vector.y_uni()) or vec2.paralelo(vector.z_uni()))\
+    and (vec3.paralelo(vector.x_uni()) or vec3.paralelo(vector.y_uni()) or vec3.paralelo(vector.z_uni())):
+        x=0
+        y=0
+        z=0
+        for vecs in [vec1, vec2, vec3]:
+            if vecs.paralelo(vector.x_uni()):
+                x=(copy.deepcopy(base).mover(vecs)).x
+                
+            elif vecs.paralelo(vector.y_uni()):
+                y=(copy.deepcopy(base).mover(vecs)).y
+                
+            elif vecs.paralelo(vector.z_uni()):
+                z=(copy.deepcopy(base).mover(vecs)).z
+                
+        return (base.x,x,base.y,y,base.z,z), "rpp"
+    
+    else:
+        return (base.x, base.y, base.z, *vec1, *vec2, *vec3), "box"
+            
+    
+        
+        
 def MCNPaConoTruncado(*param):
     if len(param) == 8:
         base=punto( param[0], param[1], param[2])
         vector_alt=vector( param[3], param[4], param[5])
         return poliedroConvexo.conoTruncado(base, param[6], param[7], vector_alt)
+    
+def conoTruncadoaMCNP(conot):
+    base=conot.poligonos_convexos[0].punto_cent
+    r1=(conot.poligonos_convexos[0].punto_cent.apunta()-conot.poligonos_convexos[0].puntos[0].apunta()).magn()
+    r2=(conot.poligonos_convexos[1].punto_cent.apunta()-conot.poligonos_convexos[1].puntos[0].apunta()).magn()
+    vec=(conot.poligonos_convexos[0].punto_cent.apunta()-conot.poligonos_convexos[1].punto_cent.apunta()).magn()
+    
+    return (base.x, base.y, base.z, vec[0], vec[1], vec[2], r1, r2), "trc"
         
         
 def MCNPGeomaLista(cadena):
@@ -420,10 +482,12 @@ def MCNPaGeom(con):
             
             
 if __name__=="__main__":
-    #prueba="""    1       rpp -75 75 -75 75 -75 75  
-    #2       rpp -75 75 -75 75 -75 75"""
+    prueba="""    1       rpp -75 75 -75 75 -75 75  
+    2       rpp -75 75 -75 75 -75 75"""
 
-    #flotantes=MCNPaLista(prueba)
+    flotantes=[MCNPGeomaLista(prueba)]
+    
+    print(flotantes)
     
     #if flotantes:
         
@@ -433,11 +497,15 @@ if __name__=="__main__":
         
     #    print(flotantes[2])
     
-    muchotexto=lecturaMCNP("rayosx2.txt")
+    #muchotexto=lecturaMCNP("rayosx2.txt")
         
     #print(muchotexto)
     
-    geometria=MCNPaGeom(muchotexto)
+    geometria=MCNPaGeom(flotantes)[0]
+    #print(geometria)
+    
+    print(ParalelepipedoaMCNP(geometria["paralelepipedos"][0]))
+
 
 
 
