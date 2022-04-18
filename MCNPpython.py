@@ -166,6 +166,7 @@ def cilindroaMCNP(cilindro):
     else:
         return (p,r,v), "rcc"
 
+
 def geomaMCNP(figs, figs_num):
     
     cadena=""
