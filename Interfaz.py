@@ -28,7 +28,8 @@ class interfaz(tk.Tk):
     TAMANO_PASO=1
 
     FONDO="#0b0b0b"
-    figuras={"esferas":list(),"paralelepipedos":list(),"plano":list(),"cilindro":list()}
+    figuras={"esferas":list(),"paralelepipedos":list(),"plano":list(),"cilindro":list(), "conot":list()}
+    figuras_num={"esferas":list(),"paralelepipedos":list(),"plano":list(),"cilindro":list(), "conot":list()}
 
     # Declara una variable de clase para contar ventanas
     
@@ -126,7 +127,7 @@ class interfaz(tk.Tk):
     def _crear_herramienta_zoom(self):
         ttk.Label(self, text="Zoom", foreground="#FFFFFF", background="#131313").place(relx=self.X_REL, rely=0.052, relheight=0.035, relwidth=0.2, anchor="ne")
 
-        self.deslizante_zoom=ttk.Scale(self, from_=0.01, to=10000, orient="horizontal", command=self._cambio)
+        self.deslizante_zoom=ttk.Scale(self, from_=0.001, to=100, orient="horizontal", command=self._cambio)
         self.deslizante_zoom.set(self._manejo_geometria._zoom)
         self.deslizante_zoom.place(relx=self.X_REL, rely=0.01, relheight=0.04, relwidth=0.2, anchor="ne")
 
@@ -357,7 +358,7 @@ class interfaz(tk.Tk):
                 posx = float(inputtxt2.get("1.0", "end-1c"))
                 posy = float(inputtxt3.get("1.0", "end-1c"))
                 posz = float(inputtxt4.get("1.0", "end-1c"))
-                self._generar_esfera_param(radio, posx, posy, posz)
+                self._crear_esfera_param(radio, posx, posy, posz)
                 if(radio < 0):
                     Output.insert(tk.END, "ERROR EN CAPTURA DE DATOS!!!")
                 else:
@@ -692,7 +693,7 @@ class interfaz(tk.Tk):
         
         try:        
             geoms=MCNPaGeom(lecturaMCNP(self.archivo))
-            self.figuras=geoms
+            self.figuras=geoms[0]
             self._cambioFig()
             self._cambio()
             
@@ -709,6 +710,8 @@ class interfaz(tk.Tk):
             vertices=self._manejo_geometria._vertices
             
             for geom in self.figuras:
+                if geom == "plano":
+                    continue
                 for fig in self.figuras[geom]:
                     
                     #print(hash(fig))

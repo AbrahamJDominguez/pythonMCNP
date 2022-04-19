@@ -2,7 +2,7 @@ from plano import plano
 from poliedroConvexo import poliedroConvexo
 from punto import punto
 from vector import vector
-from utilidades import FLOAT_EPS
+from utilidades import FLOAT_EPS, isfloat
 import numpy as np
 import copy
 #print("hola")
@@ -18,6 +18,9 @@ superficies={"p":planos,"s":esferas,"c":cilindros}
 superficiesGeom={"p":plano,"s":poliedroConvexo.esfera,"c":poliedroConvexo.cilindro}
 macros={"trc":poliedroConvexo.conoTruncado,"box":poliedroConvexo.paralelepipedo,"rcc":poliedroConvexo.cilindro,"rpp":poliedroConvexo.paralelepipedo,"sph":poliedroConvexo.esfera}
 figuras={"esferas":list(),"paralelepipedos":list(),"plano":list(),"cilindro":list(), "conot":list()}
+
+params={"p":4, "px":1,"py":1,"pz":1,"so":1,"sx":2,"sy":2,"sz":2,"c/x":3,"c/y":3,"c/z":3,
+        "cx":1,"cy":1,"cz":1}
 
 def verificarFloatLista(lista,inicio=0,fin=-1):
     if fin == -1:
@@ -217,7 +220,7 @@ def MCNPacilindro(*param,tipo="rcc"):
 	elif tipo == "c/x":
 		if len(param) == 3:
 			centro=punto(0,param[0],param[1])
-			vec=vector(100,0,0);centro.mover((1/2)*vec)
+			vec=vector(100,0,0);centro.mover(-(1/2)*vec)
 			r=param[2]
 
 			return poliedroConvexo.cilindro(centro, r, vec)
@@ -225,15 +228,15 @@ def MCNPacilindro(*param,tipo="rcc"):
 	elif tipo == "c/y":
 		if len(param) == 3:
 			centro=punto(param[0], 0, param[1])
-			vec=vector(0,100,0);centro.mover((1/2)*vec)
+			vec=vector(0,100,0);centro.mover(-(1/2)*vec)
 			r=param[2]
 
 			return poliedroConvexo.cilindro(centro, r, vec)
 
 	elif tipo == "c/z":
 		if len(param) == 3:
-			centro=punto(param[0], param[1], -50)
-			vec=vector(0,0,100);
+			centro=punto(param[0], param[1], 0)
+			vec=vector(0,0,200);centro.mover(-(1/2)*vec)
 			r=param[2]
 
 			return poliedroConvexo.cilindro(centro, r, vec)
@@ -373,14 +376,23 @@ def conoTruncadoaMCNP(conot):
     return (base.x, base.y, base.z, vec[0], vec[1], vec[2], r1, r2), "trc"
         
         
-def MCNPGeomaLista(cadena):
+def MCNPGeomaLista(cadena, param_faltante=False):
+    cadena=cadena.strip()
     lista=cadena.split(" ")
     
     while "" in lista:
         lista.remove("")
         
-    if not lista:
+    if param_faltante:
+        print(isfloat(lista[0]))
+        print(verificarFloatLista(lista)[1])
+        
+    if not lista: 
         return False
+        
+    elif isfloat(lista[0]) and verificarFloatLista(lista)[1] and param_faltante:
+        print("hola3")
+        return float(lista[0])
     
     elif "c" in lista[0]:
         return False
@@ -391,6 +403,7 @@ def MCNPGeomaLista(cadena):
     elif lista[1].isnumeric():
         return False
     
+    
     else:
         
         indice_dinero, _= verificarFloatLista(lista, 2)
@@ -400,6 +413,7 @@ def MCNPGeomaLista(cadena):
         tipo=lista[1]
         
         return num, tipo, lis 
+    
     
 
 def lecturaMCNP(ruta_archivo):
@@ -414,10 +428,11 @@ def lecturaMCNP(ruta_archivo):
         for linea in archivo:
             cont=0
             linea=linea.strip()
-            #print(linea)
+            print(linea)
             lec=MCNPGeomaLista(linea)
+
+            print(lec)
             
-            #print(lec)
             if not lec:
                 continue
             
@@ -430,7 +445,14 @@ def lecturaMCNP(ruta_archivo):
                 continue
 
             if lec:
-                param=lec[2]
+                param=len(lec[2])
+                
+                if lec[1] in params:
+                    if params[lec[1]] != param:
+                        faltante=archivo.readline()
+                        
+                        lec[2].append(MCNPGeomaLista(faltante, param_faltante=True))
+                        print(lec[2])
                 
                 if not geom:
                     geom.append(lec)

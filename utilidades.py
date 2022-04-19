@@ -154,3 +154,10 @@ def unifica_tipo(lista):
             tipos.append((0, type(item)))
     result_type = min(tipos)[1]
     return [result_type(i) for i in lista]
+
+def isfloat(cadena):
+    try:
+        float(cadena)
+        return True
+    except:
+        return False
