@@ -28,16 +28,15 @@ class interfaz(tk.Tk):
     TAMANO_PASO=1
 
     FONDO="#0b0b0b"
-    figuras={"esferas":list(),"paralelepipedos":list(),"plano":list(),"cilindro":list(), "conot":list()}
-    figuras_num={"esferas":list(),"paralelepipedos":list(),"plano":list(),"cilindro":list(), "conot":list()}
+    figuras={"esferas":list(),"paralelepipedos":list(),"plano":list(),"cilindro":list()}
 
     # Declara una variable de clase para contar ventanas
-    
+
     ventana = 0
 
     # Declara una variable de clase para usar en el
     # cálculo de la posición de una ventana
-    
+
     posx_y = 0
 
     def __init__(self, titulo="MCNPython", tam_min=(1200,600)):
@@ -56,39 +55,39 @@ class interfaz(tk.Tk):
         self.bind("<Right>", self._mover_derecha)
         self.bind("<Left>", self._mover_izquierda)
         self.archivo=""
-        
+
     def _barra_menu(self):
         self._barra_opciones=tk.Menu(self)
-        
+
     def _opciones_archivo(self):
         self._barra_menu()
-        
+
         self.menu_archivos=tk.Menu(self._barra_opciones, tearoff=0)
         self.menu_archivos.add_command(label="Abrir archivo", command=self._seleccionar_archivo)
         self._barra_opciones.add_cascade(label="Archivo", menu=self.menu_archivos)
-        
+
         self.config(menu=self._barra_opciones)
-        
+
     def _seleccionar_archivo(self):
         self.archivo=filedialog.askopenfilename()
         if self.archivo:
             self._leer_archivo("")
-        
+
     def _mover_arriba(self, event):
         #self._manejo_geometria.POSICION_OBJ[0]+=self.TAMANO_PASO
         self._manejo_geometria.POSICION_OBJ[1]-=self.TAMANO_PASO
         self._cambio()
-        
+
     def _mover_abajo(self, event):
         #self._manejo_geometria.POSICION_OBJ[0]-=self.TAMANO_PASO
         self._manejo_geometria.POSICION_OBJ[1]+=self.TAMANO_PASO
         self._cambio()
-        
+
     def _mover_derecha(self, event):
         #self._manejo_geometria.POSICION_OBJ[0]+=self.TAMANO_PASO
         self._manejo_geometria.POSICION_OBJ[0]+=self.TAMANO_PASO
         self._cambio()
-        
+
     def _mover_izquierda(self, event):
         #self._manejo_geometria.POSICION_OBJ[0]-=self.TAMANO_PASO
         self._manejo_geometria.POSICION_OBJ[0]-=self.TAMANO_PASO
@@ -115,6 +114,7 @@ class interfaz(tk.Tk):
         self._boton_generar_cilindro()
         self._boton_generar_piramide()
         self._boton_generar_dibujar()
+        self._boton_generar_archivo()
 
     def _crear_lienzo(self):
         self.color_lienzo= tk.StringVar()
@@ -127,7 +127,7 @@ class interfaz(tk.Tk):
     def _crear_herramienta_zoom(self):
         ttk.Label(self, text="Zoom", foreground="#FFFFFF", background="#131313").place(relx=self.X_REL, rely=0.052, relheight=0.035, relwidth=0.2, anchor="ne")
 
-        self.deslizante_zoom=ttk.Scale(self, from_=0.001, to=100, orient="horizontal", command=self._cambio)
+        self.deslizante_zoom=ttk.Scale(self, from_=0.01, to=10000, orient="horizontal", command=self._cambio)
         self.deslizante_zoom.set(self._manejo_geometria._zoom)
         self.deslizante_zoom.place(relx=self.X_REL, rely=0.01, relheight=0.04, relwidth=0.2, anchor="ne")
 
@@ -173,6 +173,9 @@ class interfaz(tk.Tk):
     def _boton_generar_dibujar(self):
         ttk.Button(self, text="Generar dibujar", command=self._generar_dibujar).place(relx=self.X_REL, rely=0.7, relheight=0.05, relwidth=0.1, anchor="ne")        
 
+    def _boton_generar_archivo(self):
+        ttk.Button(self, text="Generar archivo", command=self._generar_archivo).place(relx=self.X_REL -.1, rely=0.8, relheight=0.05, relwidth=0.1, anchor="ne")        
+
     def _destruir_ventana_emergente(self):
         self.dialogo.destroy()
         interfaz.ventana-=1
@@ -180,6 +183,129 @@ class interfaz(tk.Tk):
     def _cerrado_tacha(self):
         interfaz.ventana-=1
         self.dialogo.destroy()
+        
+    def _generar_archivo(self):
+        
+        if interfaz.ventana <1:
+    
+            self.dialogo = tk.Toplevel()
+            
+            interfaz.ventana+=1
+            
+            interfaz.posx_y += 50
+            tamypos = '200x100+'+str(interfaz.posx_y)+ \
+                      '+'+ str(interfaz.posx_y)
+            self.dialogo.geometry(tamypos)
+            self.dialogo.resizable(50,50)
+            self.dialogo.minsize(400, 500)
+            
+            ident = self.dialogo.winfo_id()
+            
+            titulo = str(interfaz.ventana)+": "+str(ident)
+            self.dialogo.title(titulo)
+            
+            boton = ttk.Button(self.dialogo, text='CERRAR', command=self._destruir_ventana_emergente)   
+            boton.pack(side=tk.BOTTOM, padx=20, pady=20)
+
+            self.cont=0
+            self.An="NOMBRE DEL ARCHIVO"
+            
+            def Arch():
+                if(self.cont == 0):
+                    Output.insert(tk.END, 'Archivo abierto')
+                    self.cont=1
+                    self.An=inputtxt1.get("1.0", "end-1c")
+                    self.archivo= open(self.An + ".txt")
+                elif(self.cont == 1):
+                    self.archivo.close()
+                    Output.insert(tk.END, 'Archivo abierto')
+                    self.An=inputtxt1.get("1.0", "end-1c")
+                    self.archivo= open(self.An + ".txt")
+                else:
+                    Output.insert(tk.END, "ERROR DE ARCHIVO!!!")
+                    
+            def Leer():
+        
+                if interfaz.ventana < 2:
+    
+                    self.dial = tk.Toplevel()
+            
+                    interfaz.ventana+=1
+            
+                    interfaz.posx_y += 50
+                    tamypos = '200x100+'+str(interfaz.posx_y)+ \
+                              '+'+ str(interfaz.posx_y)
+                    self.dial.geometry(tamypos)
+                    self.dial.resizable(50,50)
+                    self.dial.minsize(400, 650)
+            
+                    ident = self.dial.winfo_id()
+            
+                    titulo = str(interfaz.ventana)+": "+str(ident)
+                    self.dial.title(titulo)
+                    
+                    #self.archivo.close()
+                    #self.archiv = open(self.An + ".txt")
+                    self.g=0
+
+                    def destruir():
+                        if self.g==0:
+                            self.dial.destroy()
+                            interfaz.ventana-=1
+                        else:
+                            self.dial.destroy()
+                            self.archiv.close()
+                            self.archivo = open(self.An + ".txt")
+                            interfaz.ventana-=1
+                            
+
+                    def escribir():
+                        self.archivo.close()
+                        self.archiv = open(self.An + ".txt","w")
+                        self.archiv.write(Lector.get("1.0", "end-1c"))
+                        self.g=1
+
+                    Lector = tk.Text(self.dial, height =30, width = 100, bg = "light cyan")
+                    Sescri = tk.Button(self.dial, height = 2, width = 20, text = "GUARDAR", command = lambda:escribir())
+                    cerrar = tk.Button(self.dial, height = 2, width = 20, text='CERRAR', command=destruir)
+                    
+                    Lector.insert(tk.END, self.archivo.read())
+                    
+                    Lector.pack()
+                    Sescri.pack()
+                    cerrar.pack()
+
+                    self.dialogo.protocol("WM_DELETE_WINDOW", self._cerrado_tacha)
+            
+                else:
+                    print("Por favor cierre la otra ventana emergente")
+
+            def Gua():
+                self.archivo.close()    
+
+            l = tk.Label(self.dialogo, text = "ARCHIVOS")
+            l1 = tk.Label(self.dialogo, text = "NOMBRE DEL ARCHIVO")
+            inputtxt1 = tk.Text(self.dialogo, height = 2, width = 25, bg = "light yellow")
+     
+            Output = tk.Text(self.dialogo, height = 2, width = 25, bg = "light cyan")
+     
+            Display1 = tk.Button(self.dialogo, height = 2, width = 20, text = "ABIR ARCHIVO", command = lambda:Arch())
+            Display2 = tk.Button(self.dialogo, height = 2, width = 20, text = "Leer archivo", command = lambda:Leer())
+            Display3 = tk.Button(self.dialogo, height = 2, width = 20, text = "Cerrar archivo", command = lambda:Gua())
+            
+            l.pack()
+            l1.pack()
+            inputtxt1.pack()
+            Display1.pack()
+            Display2.pack()
+            Display3.pack()
+            Output.pack()
+            
+            self.dialogo.protocol("WM_DELETE_WINDOW", self._cerrado_tacha)
+            
+        else:
+            print("Por favor cierre la otra ventana emergente")
+
 
     def _crear_cilindro_param(self, H, R, X, Y, Z):
         cilindro=poliedroConvexo.cilindro(punto(X,Y,Z), R, vector(0,0,H))
@@ -536,27 +662,27 @@ class interfaz(tk.Tk):
             
         else:
             print("Por favor cierre la otra ventana emergente")
-        
-    def _generar_dibujar(self):
-        
-        if interfaz.ventana<1:
     
+    def _generar_dibujar(self):
+
+        if interfaz.ventana<1:
+
             self.dialogo = tk.Toplevel()
-            
+
             interfaz.ventana+=1
-            
+
             interfaz.posx_y += 50
             tamypos = '200x100+'+str(interfaz.posx_y)+ \
                       '+'+ str(interfaz.posx_y)
             self.dialogo.geometry(tamypos)
             self.dialogo.resizable(50,50)
             self.dialogo.minsize(400, 600)
-            
+
             ident = self.dialogo.winfo_id()
-            
+
             titulo = str(interfaz.ventana)+": "+str(ident)
             self.dialogo.title(titulo)
-            
+
             boton = ttk.Button(self.dialogo, text='CERRAR', command=self._destruir_ventana_emergente)   
             boton.pack(side=tk.BOTTOM, padx=20, pady=20)
 
@@ -576,7 +702,7 @@ class interfaz(tk.Tk):
                 y3 = float(inputtxt6.get("1.0", "end-1c"))
                 Output.insert(tk.END, 'Captura de datos correcta')
                 self._crear_punto_param(x1,x2,x3,y1,y2,y3)
-                    
+
             l = tk.Label(self.dialogo, text = "DIBUJA PUNTOS Y LINEAS")
             l1 = tk.Label(self.dialogo, text = "X1")
             l2 = tk.Label(self.dialogo, text = "X2")
@@ -584,19 +710,19 @@ class interfaz(tk.Tk):
             l4 = tk.Label(self.dialogo, text = "Y1")
             l5 = tk.Label(self.dialogo, text = "Y2")
             l6 = tk.Label(self.dialogo, text = "Y3")
-        
+
             inputtxt1 = tk.Text(self.dialogo, height = 2, width = 25, bg = "light yellow")
             inputtxt2 = tk.Text(self.dialogo, height = 2, width = 25, bg = "light yellow")
             inputtxt3 = tk.Text(self.dialogo, height = 2, width = 25, bg = "light yellow")
             inputtxt4 = tk.Text(self.dialogo, height = 2, width = 25, bg = "light yellow")
             inputtxt5 = tk.Text(self.dialogo, height = 2, width = 25, bg = "light yellow")
             inputtxt6 = tk.Text(self.dialogo, height = 2, width = 25, bg = "light yellow")
-     
+
             Output = tk.Text(self.dialogo, height = 2, width = 25, bg = "light cyan")
-     
+
             Display1 = tk.Button(self.dialogo, height = 2, width = 20, text ="CREAR PUNTO", command = lambda:Pung())
             Display2 = tk.Button(self.dialogo, height = 2, width = 20, text ="CREAR LINEA", command = lambda:Ling())
-     
+
             l.pack()
             l1.pack()
             inputtxt1.pack()
@@ -613,35 +739,35 @@ class interfaz(tk.Tk):
             inputtxt6.pack()
             Display2.pack()
             Output.pack()
-            
+
             self.dialogo.protocol("WM_DELETE_WINDOW", self._cerrado_tacha)
-            
+
         else:
             print("Por favor cierre la otra ventana emergente")
-            
+
     def _generar_cilindro(self):
-        
+
         if interfaz.ventana<1:
-    
+
             self.dialogo = tk.Toplevel()
-            
+
             interfaz.ventana+=1
-            
+
             interfaz.posx_y += 50
             tamypos = '200x100+'+str(interfaz.posx_y)+ \
                       '+'+ str(interfaz.posx_y)
             self.dialogo.geometry(tamypos)
             self.dialogo.resizable(50,50)
             self.dialogo.minsize(400, 550)
-            
+
             ident = self.dialogo.winfo_id()
-            
+
             titulo = str(interfaz.ventana)+": "+str(ident)
             self.dialogo.title(titulo)
-            
+
             boton = ttk.Button(self.dialogo, text='CERRAR', command=self._destruir_ventana_emergente)   
             boton.pack(side=tk.BOTTOM, padx=20, pady=20)
-    
+
             def Cilg():
                 altura = float(inputtxt1.get("1.0", "end-1c"))
                 radio = float(inputtxt5.get("1.0", "end-1c"))
@@ -653,7 +779,7 @@ class interfaz(tk.Tk):
                     Output.insert(tk.END, "ERROR EN CAPTURA DE DATOS!!!")
                 else:
                     Output.insert(tk.END, 'Captura de datos correcta')
-                    
+
             l = tk.Label(self.dialogo, text = "GENERADOR DE CILINDROS")
             l1 = tk.Label(self.dialogo, text = "Altura")
             l2 = tk.Label(self.dialogo, text = "Posición x")
@@ -665,11 +791,11 @@ class interfaz(tk.Tk):
             inputtxt3 = tk.Text(self.dialogo, height = 2, width = 25, bg = "light yellow")
             inputtxt4 = tk.Text(self.dialogo, height = 2, width = 25, bg = "light yellow")
             inputtxt5 = tk.Text(self.dialogo, height = 2, width = 25, bg = "light yellow")
-     
+
             Output = tk.Text(self.dialogo, height = 2, width = 25, bg = "light cyan")
-     
+
             Display = tk.Button(self.dialogo, height = 2, width = 20, text ="CREAR", command = lambda:Cilg())
-     
+
             l.pack()
             l1.pack()
             inputtxt1.pack()
@@ -683,37 +809,35 @@ class interfaz(tk.Tk):
             inputtxt5.pack()
             Display.pack()
             Output.pack()
-            
+
             self.dialogo.protocol("WM_DELETE_WINDOW", self._cerrado_tacha)
-            
+
         else:
             print("Por favor cierre la otra ventana emergente")
-        
+
     def _leer_archivo(self, evento):
-        
+
         try:        
             geoms=MCNPaGeom(lecturaMCNP(self.archivo))
-            self.figuras=geoms[0]
+            self.figuras=geoms
             self._cambioFig()
             self._cambio()
-            
+
         except:
             print("No se pudo leer el archivo")
-        
+
         #vertices={item: val.punto_arreglo() for item, val in enumerate(esfera.con_puntos)}
         #self._manejo_geometria._vertices= vertices
 
     def _figurasRender(self):
-        
+
         if self.cambioFig:
             caras=self._manejo_geometria._caras
             vertices=self._manejo_geometria._vertices
-            
+
             for geom in self.figuras:
-                if geom == "plano":
-                    continue
                 for fig in self.figuras[geom]:
-                    
+
                     #print(hash(fig))
                     vertices=geomRenderVertices2(fig,vertices)
                     if not vertices:
@@ -748,7 +872,7 @@ class interfaz(tk.Tk):
 
     def _obtener_zoom(self):
         self._manejo_geometria._zoom=self.deslizante_zoom.get()
-        
+
     def _cambio_ventana(self, evento):
         self._manejo_geometria.CANVAS_WIDTH=self.canvas.winfo_width()
         self._manejo_geometria.CANVAS_HEIGHT==self.canvas.winfo_height()
@@ -762,7 +886,7 @@ class interfaz(tk.Tk):
             self.cambioFig=False
 
         if self.cambio and len(self._manejo_geometria._caras):
-            
+
             self.canvas.delete("all")
             self.canvas=self._manejo_geometria.dibujar_objeto(self.canvas)
             self.cambio=False
