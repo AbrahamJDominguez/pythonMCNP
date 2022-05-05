@@ -101,3 +101,71 @@ class plano(objeto):
             return plano(self.p,self.n)
         else:
             return NotImplementedError("El segundo parametro debe ser un vector")
+        
+    def crear_poli(self, lejos=50):
+        from poligonoConvexo import poligonoConvexo
+        
+        param=self.for_gen()
+        
+        if abs(param[0])>0 and abs(param[1])>0 and abs(param[2])>0:
+            
+            p1=(-(param[0]*(-lejos)+param[1]*(-lejos))+param[3])/param[2]
+            p2=(-(param[0]*p1+param[2]*(lejos/2))+param[3])/param[1]
+            p3=(-(param[1]*p1+param[2]*p2)+param[3])/param[0]
+            p4=(-(param[1]*(lejos)+param[2]*(lejos))+param[3])/param[0]
+            
+            p1=punto((-lejos),(-lejos), p1)
+            p2=punto((lejos/2), p2,(lejos/2))
+            p3=punto(p3, p2.y, p1.z)
+            p4=punto(p4,(lejos),(lejos))
+            
+            pol=poligonoConvexo((p1,p2,p3,p4))
+            
+            pol.plano.p=self.p
+            pol.plano.n=self.n
+            
+            return pol
+        
+        elif abs(param[0])!=0 and abs(param[1])==0 and abs(param[2])==0:
+            
+            p1=punto(param[3],-lejos, lejos)
+            p2=punto(param[3], -lejos, -lejos)
+            p3=punto(param[3], lejos, -lejos)
+            p4=punto(param[3],lejos, lejos)
+            
+            pol=poligonoConvexo((p1,p2,p3,p4))
+            
+            pol.plano.p=self.p
+            pol.plano.n=self.n
+            
+            return pol
+        
+        elif abs(param[1])!=0 and abs(param[2])==0 and abs(param[0])==0:
+            
+            p1=punto(-lejos, param[3], lejos)
+            p2=punto( -lejos, param[3], -lejos)
+            p3=punto(lejos, param[3], -lejos)
+            p4=punto(lejos, param[3],lejos)
+            
+            pol=poligonoConvexo((p1,p2,p3,p4))
+            
+            pol.plano.p=self.p
+            pol.plano.n=self.n
+            
+            return pol
+        
+        elif abs(param[2])!=0 and abs(param[1])==0 and abs(param[0])==0:
+            
+            p1=punto(-lejos, lejos, param[3])
+            p2=punto( -lejos, -lejos, param[3])
+            p3=punto(lejos, -lejos, param[3])
+            p4=punto(lejos, lejos, param[3])
+            
+            pol=poligonoConvexo((p1,p2,p3,p4))
+            print(pol)
+            
+            pol.plano.p=self.p
+            pol.plano.n=self.n
+            
+            return pol
+            

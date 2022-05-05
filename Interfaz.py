@@ -29,7 +29,7 @@ from linea import linea
 #from poligonoConvexo import polignoConvexo
 from poliedroConvexo import poliedroConvexo
 from matrix import matrix
-from utilidades import geomRenderVertices2, geomRenderCaras
+from utilidades import geomRenderVertices2, geomRenderCaras, geomRenderVerticesP2, geomRenderPlano
 from geometriaRender import geometria
 from MCNPpython import lecturaMCNP, MCNPaGeom, geomaMCNP
 from tkinter import messagebox
@@ -47,6 +47,7 @@ class interfaz(tk.Tk):
 
     FONDO="#0b0b0b"
     figuras={"esferas":list(),"paralelepipedos":list(),"plano":list(),"cilindro":list(), "conot":list()}
+    pplanos=[]
     figuras_num={"esferas":list(),"paralelepipedos":list(),"plano":list(),"cilindro":list(), "conot":list()}
     # Declara una variable de clase para contar ventanas
     ventana = 0
@@ -59,6 +60,7 @@ class interfaz(tk.Tk):
         self.cambio=True
         self.cambioFig=False
         self._manejo_geometria=geometria(self.ANCHO_CANVAS,self.ALTURA_CANVAS)
+        self._manejo_planos=geometria(self.ANCHO_CANVAS,self.ALTURA_CANVAS)
         self._iniciar_ventana(titulo, tam_min)
         self._crear_herramientas()
         self._reiniciar_rotacion()
@@ -140,19 +142,23 @@ class interfaz(tk.Tk):
     def _mover_arriba(self, event):
         #self._manejo_geometria.POSICION_OBJ[0]+=self.TAMANO_PASO
         self._manejo_geometria.POSICION_OBJ[1]-=self.TAMANO_PASO
+        self._manejo_planos.POSICION_OBJ[1]-=self.TAMANO_PASO
         self._cambio()
         
     def _mover_abajo(self, event):
         #self._manejo_geometria.POSICION_OBJ[0]-=self.TAMANO_PASO
         self._manejo_geometria.POSICION_OBJ[1]+=self.TAMANO_PASO
+        self._manejo_planos.POSICION_OBJ[1]+=self.TAMANO_PASO
         self._cambio()
         
     def _mover_derecha(self, event):
         self._manejo_geometria.POSICION_OBJ[0]+=self.TAMANO_PASO
+        self._manejo_planos.POSICION_OBJ[0]+=self.TAMANO_PASO
         self._cambio()
         
     def _mover_izquierda(self, event):
         self._manejo_geometria.POSICION_OBJ[0]-=self.TAMANO_PASO
+        self._manejo_planos.POSICION_OBJ[0]-=self.TAMANO_PASO
         self._cambio()
 
     def _iniciar_ventana(self, titulo, tam):
@@ -173,7 +179,7 @@ class interfaz(tk.Tk):
         self._boton_generar_esfera()
         self._boton_generar_cilindro()
         self._boton_generar_plano()
-        self._boton_generar_dibujar()
+        #self._boton_generar_dibujar()
 
     def _crear_lienzo(self):
         self.color_lienzo= tk.StringVar()
@@ -184,7 +190,7 @@ class interfaz(tk.Tk):
 
     def _crear_herramienta_zoom(self):
         ttk.Label(self, text="Zoom", foreground="#FFFFFF", background="#131313").place(relx=self.X_REL, rely=0.052, relheight=0.035, relwidth=0.2, anchor="ne")
-        self.deslizante_zoom=ttk.Scale(self, from_=0.01, to=10000, orient="horizontal", command=self._cambio)
+        self.deslizante_zoom=ttk.Scale(self, from_=0.01, to=10000, orient="horizontal", command=self._cambio_zoom)
         self.deslizante_zoom.set(self._manejo_geometria._zoom)
         self.deslizante_zoom.place(relx=self.X_REL, rely=0.01, relheight=0.04, relwidth=0.2, anchor="ne")
 
@@ -249,15 +255,15 @@ class interfaz(tk.Tk):
             self._cambioFig()
             self._cambio()
             
-    def _crear_cubo_param(self, B, X, Y, Z):
-        cubo=poliedroConvexo.paralelepipedo(punto(X,Y,Z),vector(B,0,0),vector(0,B,0),vector(0,0,B))
-        hashes=[]
-        for i in self.figuras["paralelepipedos"]:
-            hashes.append(hash(i))
-        if hash(cubo) not in hashes:
-            self.figuras["paralelepipedos"].append(cubo)
-            self._cambioFig()
-            self._cambio()
+    # def _crear_cubo_param(self, B, X, Y, Z):
+    #     cubo=poliedroConvexo.paralelepipedo(punto(X,Y,Z),vector(B,0,0),vector(0,B,0),vector(0,0,B))
+    #     hashes=[]
+    #     for i in self.figuras["paralelepipedos"]:
+    #         hashes.append(hash(i))
+    #     if hash(cubo) not in hashes:
+    #         self.figuras["paralelepipedos"].append(cubo)
+    #         self._cambioFig()
+    #         self._cambio()
 
     def _crear_esfera_param(self, R, X, Y, Z):
         esfera=poliedroConvexo.esfera(punto(X,Y,Z),R)
@@ -266,6 +272,12 @@ class interfaz(tk.Tk):
             hashes.append(hash(i))
         if hash(esfera) not in hashes:
             self.figuras["esferas"].append(esfera)
+            
+            indices=[]
+            for i in self.figuras_num:
+                indices+=self.figuras_num[i]
+            self.figuras_num["esferas"].append(max(indices)+1)
+            
             self._cambioFig()
             self._cambio()
 
@@ -275,7 +287,13 @@ class interfaz(tk.Tk):
         for i in self.figuras["paralelepipedos"]:
             hashes.append(hash(i))
         if hash(prisma) not in hashes:
+            
             self.figuras["paralelepipedos"].append(prisma)
+            
+            indices=[]
+            for i in self.figuras_num:
+                indices+=self.figuras_num[i]
+            self.figuras_num["paralelepipedos"].append(max(indices)+1)
             self._cambioFig()
             self._cambio()
 
@@ -293,6 +311,12 @@ class interfaz(tk.Tk):
                 hashes.append(hash(i))
             if hash(plano) not in hashes:
                 self.figuras["plano"].append(plano)
+                
+                indices=[]
+                for i in self.figuras_num:
+                    indices+=self.figuras_num[i]
+                self.figuras_num["plano"].append(max(indices)+1)
+                
                 self._cambioFig()
                 self._cambio()
 
@@ -554,7 +578,7 @@ class interfaz(tk.Tk):
                 self._crear_prisma_param(b1, b2, b3, x1, x2, x3, y1, y2, y3, z1, z2, z3)
                 Output.insert(tk.END, 'Captura de datos correcta')          
             l1 = tk.Label(self.dialogo, text = "Vector posición").place(relx=0.7, rely=0.075, relheight=0.085, relwidth=0.4, anchor="ne")
-            l = tk.Label(self.dialogo, text = "GENERADOR DE POLIEDROS").place(relx=0.7, rely=0.015, relheight=0.085, relwidth=0.4, anchor="ne")
+            l = tk.Label(self.dialogo, text = "GENERADOR DE PARALELEPIPEDOS").place(relx=0.7, rely=0.015, relheight=0.085, relwidth=0.4, anchor="ne")
             inputtxt1 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
             inputtxt1.place(relx=0.3, rely=0.145, relheight=0.07, relwidth=0.2, anchor="ne")
             inputtxt2 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
@@ -639,9 +663,23 @@ class interfaz(tk.Tk):
         if self.cambioFig:
             caras=self._manejo_geometria._caras
             vertices=self._manejo_geometria._vertices
+            
+            carasp=self._manejo_planos._caras
+            verticesp=self._manejo_planos._vertices
+            
             for geom in self.figuras:
                 if geom == "plano":
+                    for fig in self.figuras[geom]:
+                        
+                        verticesp=geomRenderVerticesP2(fig, verticesp)
+                        
+                        if not verticesp:
+                            continue
+                        
+                        carasp=geomRenderPlano(fig, verticesp)[0]+carasp
+                                           
                     continue
+                
                 for fig in self.figuras[geom]:
                     #print(hash(fig))
                     vertices=geomRenderVertices2(fig,vertices)
@@ -651,17 +689,26 @@ class interfaz(tk.Tk):
                     caras=geomRenderCaras(fig,vertices)[0]+caras
             #print(caras)
             #print(vertices)
+            
+            
             self._manejo_geometria._caras=caras
             self._manejo_geometria._vertices=vertices
+            self._manejo_planos._caras=carasp
+            self._manejo_planos._vertices=verticesp
 
     def _cambio(self,*arg):
         self.cambio=True
+        
+    def _cambio_zoom(self, *arg):
+        self._manejo_planos._zoom=self._manejo_geometria._zoom
+        self._cambio()
 
     def _cambioFig(self, *args):
         self.cambioFig=True
 
     def _reiniciar_rotacion(self):
         self._manejo_geometria.reiniciar_angulos()
+        self._manejo_planos.reiniciar_angulos()
         self.deslizante_rot_x.set(0)
         self.deslizante_rot_y.set(0)
         self.deslizante_rot_z.set(0)
@@ -671,13 +718,18 @@ class interfaz(tk.Tk):
         self._manejo_geometria._angulo_x=self.deslizante_rot_x.get()
         self._manejo_geometria._angulo_y=self.deslizante_rot_y.get()
         self._manejo_geometria._angulo_z=self.deslizante_rot_z.get()
+        self._manejo_planos._angulo_x=self.deslizante_rot_x.get()
+        self._manejo_planos._angulo_y=self.deslizante_rot_y.get()
+        self._manejo_planos._angulo_z=self.deslizante_rot_z.get()
 
     def _obtener_zoom(self):
         self._manejo_geometria._zoom=self.deslizante_zoom.get()
         
     def _cambio_ventana(self, evento):
         self._manejo_geometria.CANVAS_WIDTH=self.canvas.winfo_width()
-        self._manejo_geometria.CANVAS_HEIGHT==self.canvas.winfo_height()
+        self._manejo_geometria.CANVAS_HEIGHT=self.canvas.winfo_height()
+        self._manejo_planos.CANVAS_WIDTH=self.canvas.winfo_width()
+        self._manejo_planos.CANVAS_HEIGHT=self.canvas.winfo_height()
 
     def dibujar(self):
         self._obtener_rotacion()
@@ -689,6 +741,8 @@ class interfaz(tk.Tk):
         if self.cambio and len(self._manejo_geometria._caras):
             self.canvas.delete("all")
             self.canvas=self._manejo_geometria.dibujar_objeto(self.canvas)
+            self.canvas=self._manejo_planos.dibujar_objeto(self.canvas, opacidad=True, root=self)
+
             self.cambio=False
 
 class main_():

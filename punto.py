@@ -13,6 +13,7 @@ class punto(object):
     clase=0
     
     def __init__(self,*args):
+
         
         if len(args)==1: #caso en que se utiliza una lista
             cden=args[0]

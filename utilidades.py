@@ -84,6 +84,25 @@ def geomRenderVertices2(poliedro,vertices):
     #print(vertices)
     return vertices
 
+def geomRenderVerticesP(plano):
+    
+    vertices={item: val.punto_arreglo() for item, val in enumerate(plano.crear_poli())}
+    #print(vertices)
+    return vertices
+
+def geomRenderVerticesP2(plano,vertices):
+    vertices2=geomRenderVerticesP(plano)
+    orig=len(vertices)
+    
+    for num in vertices2:
+        llave=keyValue(vertices, vertices2[num])
+        if llave is False:
+            #for item, val in enumerate(poliedro.con_puntos):
+            vertices[orig] = vertices2[num]
+            orig=len(vertices)
+    #print(vertices)
+    return vertices
+
 def geomRenderCaras(poliedro, vertices:dict):
     caras=[]
     for cara in poliedro.poligonos_convexos:
@@ -101,6 +120,24 @@ def geomRenderCaras(poliedro, vertices:dict):
 
             caras.append(aux)
     #print(caras)
+    return caras, vertices
+
+def geomRenderPlano(plan, vertices:dict):
+    caras=[]
+    cara=plan.crear_poli()
+    aux=[]
+    for point in cara.puntos:
+        llave=keyValue(vertices, point.punto_arreglo())
+        #print(llave)
+
+        if llave or llave==0:
+            aux.append(llave)
+
+        else:
+            vertices[len(vertices)]=point.punto_arreglo()
+
+    caras.append(aux)
+
     return caras, vertices
 
 def puntos_circulo(centro, normal, radio, n=10):
