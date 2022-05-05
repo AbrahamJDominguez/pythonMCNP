@@ -38,6 +38,7 @@ class vector(object):
         else:
             raise TypeError("La cantidad de argumentos entregados es incorrecta")
         self.v=unifica_tipo(self.v) #hacemos que el vector contenga solo un tipo de dato
+        self.redond()
 
     def __repr__(self):
         return "Vector({}, {}, {})".format(*self.v)
@@ -96,3 +97,20 @@ class vector(object):
 
     def paralelo(self, vectorb):
         return abs(abs(self*vectorb)-abs(self.magn()*vectorb.magn()))<FLOAT_EPS #deben ser iguales si el angulo entre ellos es 0 o 180
+
+    def redond(self, dec=8):
+        self.v[0]=round(self.v[0],dec)
+        self.v[1]=round(self.v[1],dec)
+        self.v[2]=round(self.v[2],dec)
+        
+        if abs(self.v[0]) < FLOAT_EPS:
+            self.v[0]=0
+            
+        if abs(self.v[1]) < FLOAT_EPS:
+            self.v[1]=0
+            
+        if abs(self.v[2]) < FLOAT_EPS:
+            self.v[2]=0
+            
+            
+            

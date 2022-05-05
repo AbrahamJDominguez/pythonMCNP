@@ -6,7 +6,7 @@ Created on Mon Apr 11 13:09:00 2022
 """
 from vector import vector
 import math
-from utilidades import unifica_tipo, SIG_FIGURES
+from utilidades import unifica_tipo, SIG_FIGURES, FLOAT_EPS
 
 class punto(object):
 
@@ -21,6 +21,7 @@ class punto(object):
         else:
             raise TypeError("Se deben introducir 3 valores o un arreglo")
         self.x, self.y, self.z = unifica_tipo(cden)
+        self.redond()
 
     @classmethod
     def origen(cls):
@@ -55,6 +56,22 @@ class punto(object):
 
     def punto_arreglo(self):
         return [self.x, self.y, self.z]
+    
+    def redond(self, dec=8):
+        self.x=round(self.x,dec)
+        self.y=round(self.y,dec)
+        self.z=round(self.z,dec)
+        
+        if abs(self.x) < FLOAT_EPS:
+            self.x=0
+            
+        if abs(self.y) < FLOAT_EPS:
+            self.y=0
+            
+        if abs(self.z) < FLOAT_EPS:
+            self.z=0
+        
+        
 
     def __hash__(self):
         return hash(("Point",
@@ -65,3 +82,7 @@ class punto(object):
         round(self.x,SIG_FIGURES) * round(self.z,SIG_FIGURES),
         round(self.y,SIG_FIGURES) * round(self.z,SIG_FIGURES),
         ))
+
+if __name__== "__main__":
+    p=punto(1,2,2)
+    print(p.x)

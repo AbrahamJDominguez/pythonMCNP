@@ -161,3 +161,11 @@ def isfloat(cadena):
         return True
     except:
         return False
+    
+def redond(r,dec=8):
+    r=round(r,dec)
+    
+    if abs(r) < FLOAT_EPS:
+        r=0
+        
+    return r

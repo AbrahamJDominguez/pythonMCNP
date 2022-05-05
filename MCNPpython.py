@@ -2,7 +2,7 @@ from plano import plano
 from poliedroConvexo import poliedroConvexo
 from punto import punto
 from vector import vector
-from utilidades import FLOAT_EPS, isfloat
+from utilidades import FLOAT_EPS, isfloat, redond
 import numpy as np
 import copy
 #print("hola")
@@ -19,8 +19,8 @@ superficiesGeom={"p":plano,"s":poliedroConvexo.esfera,"c":poliedroConvexo.cilind
 macros={"trc":poliedroConvexo.conoTruncado,"box":poliedroConvexo.paralelepipedo,"rcc":poliedroConvexo.cilindro,"rpp":poliedroConvexo.paralelepipedo,"sph":poliedroConvexo.esfera}
 figuras={"esferas":list(),"paralelepipedos":list(),"plano":list(),"cilindro":list(), "conot":list()}
 
-params={"p":4, "px":1,"py":1,"pz":1,"so":1,"sx":2,"sy":2,"sz":2,"c/x":3,"c/y":3,"c/z":3,
-        "cx":1,"cy":1,"cz":1}
+params={"p":(4,9), "px":(1,),"py":(1,),"pz":(1,),"so":(1,),"sx":(2,),"sy":(2,),"sz":(2,),"c/x":(3,),"c/y":(3,),"c/z":(3,),
+        "cx":(1,),"cy":(1,),"cz":(1,)}
 
 def verificarFloatLista(lista,inicio=0,fin=-1):
     if fin == -1:
@@ -74,7 +74,7 @@ def MCNPaPlano(*param,tipo="p"):
 		return plano().plano_xz().mover(vector(0,*param,0))
 
 	elif tipo=="pz" and len(param)==1:
-		return plano().plano_xz().mover(vector(0,0,*param))
+		return plano().plano_xy().mover(vector(0,0,*param))
 
 	else:
 		raise ValueError(f" Se requieren 1 o 4 o 9 valores para iniciar plano, y elegir p, px, py, pz. Se dieron {len(param)} valores y tipo {tipo} ")
@@ -85,16 +85,19 @@ def planoaMCNP(plano):
     p=plano.p
     
     if normal.paralelo(vector.x_uni()):
-        return (p.x), "px"
+        return (plano.for_gen()), "p"
+        # return (p.x), "px"
     
     elif normal.paralelo(vector.y_uni()):
-        return (p.y), "py"
+        return (plano.for_gen()), "p"
+        # return (p.y), "py"
     
-    elif normal.paralelo(vector.y_uni()):
-        return (p.z), "pz"
+    elif normal.paralelo(vector.z_uni()):
+        return (plano.for_gen()), "p"
+        # return (p.z), "pz"
     
     else:
-        return plano.for_gen(), "p"
+        return (plano.for_gen()), "p"
 
 def MCNPaEsfera(*param,tipo="s"):
 
@@ -127,30 +130,31 @@ def MCNPaEsfera(*param,tipo="s"):
 		raise ValueError("Los valores introducidos no fueron validos para crear una esfera")
 
 def esferaaMCNP(esfera):
+    distancia_centro_punto=redond((esfera.punto_central.apunta()-list(esfera.con_puntos)[0].apunta()).magn())
     if esfera.punto_central == punto(0,0,0):
-    	distancia_centro_punto=esfera.punto_central.apunta()-list(esfera.con_puntos)[0].apunta()
-    	return (esfera.punto_central,distancia_centro_punto.magn()), "so"
+
+    	return (esfera.punto_central,distancia_centro_punto), "so"
     
     elif esfera.punto_central.y == 0 and esfera.punto_central.z == 0:
-    	distancia_centro_punto=esfera.punto_central.apunta()-list(esfera.con_puntos)[0].apunta()
-    	return (esfera.punto_central,distancia_centro_punto.magn()), "sx"
+    	#distancia_centro_punto=esfera.punto_central.apunta()-list(esfera.con_puntos)[0].apunta()
+    	return (esfera.punto_central,distancia_centro_punto), "sx"
     
     elif esfera.punto_central.x == 0 and esfera.punto_central.z == 0:
-    	distancia_centro_punto=esfera.punto_central.apunta()-list(esfera.con_puntos)[0].apunta()
-    	return (esfera.punto_central,distancia_centro_punto.magn()), "sy"
+    	#distancia_centro_punto=esfera.punto_central.apunta()-list(esfera.con_puntos)[0].apunta()
+    	return (esfera.punto_central,distancia_centro_punto), "sy"
     
     elif esfera.punto_central.x == 0 and esfera.punto_central.y == 0:
-    	distancia_centro_punto=esfera.punto_central.apunta()-list(esfera.con_puntos)[0].apunta()
-    	return (esfera.punto_central,distancia_centro_punto.magn()), "sz"
+    	#distancia_centro_punto=esfera.punto_central.apunta()-list(esfera.con_puntos)[0].apunta()
+    	return (esfera.punto_central,distancia_centro_punto), "sz"
     
     else:
-        distancia_centro_punto=esfera.punto_central.apunta()-list(esfera.con_puntos)[0].apunta()
-        return (esfera.punto_central,distancia_centro_punto.magn()), "s"
+        #distancia_centro_punto=esfera.punto_central.apunta()-list(esfera.con_puntos)[0].apunta()
+        return (esfera.punto_central,distancia_centro_punto), "s"
 
 def cilindroaMCNP(cilindro):
     p=cilindro.poligonos_convexos[0].punto_cent
-    r=(cilindro.poligonos_convexos[0].punto_cent.apunta()-cilindro.poligonos_convexos[0].puntos[0].apunta()).magn()
-    v=cilindro.poligonos_convexos[0].punto_cent.apunta()-cilindro.poligonos_convexos[1].punto_cent.apunta()
+    r=redond((cilindro.poligonos_convexos[0].punto_cent.apunta()-cilindro.poligonos_convexos[0].puntos[0].apunta()).magn())
+    v=cilindro.poligonos_convexos[1].punto_cent.apunta()-cilindro.poligonos_convexos[0].punto_cent.apunta()
     
     if v.paralelo(vector.x_uni()) and (np.abs(p.y) > FLOAT_EPS  or np.abs(p.z) > FLOAT_EPS):
         return (p,r,v), "c/x"
@@ -184,19 +188,15 @@ def geomaMCNP(figs, figs_num):
                 param=esferaaMCNP(figs[fig][i])
                 num=figs_num[fig][i]
                 
-                cadena+=f"    {str(num)}       s {str(param[0].x)} {str(param[0].y)} {str(param[0].z)} {str(param[1])}\n"
+                cadena+=f"    {str(num)}       s {str(param[0][0].x)} {str(param[0][0].y)} {str(param[0][0].z)} {str(param[0][1])}\n"
                 
-        elif fig == "paralelepipedos":
-            for i in range(len(figs[fig])):
-                param=esferaaMCNP(figs[fig][i])
-                num=figs_num[fig][i]
         
         elif fig == "cilindro":
             for i in range(len(figs[fig])):
                 param=cilindroaMCNP(figs[fig][i])
                 num=figs_num[fig][i]
                 
-                cadena+=f"    {str(num)}       rcc {str(param[0])} {str(param[1])} {str(param[2])} {str(param[3])}\n"
+                cadena+=f"    {str(num)}       rcc {str(param[0][0].x)} {str(param[0][0].y)} {str(param[0][0].z)} {str(param[0][2][0])} {str(param[0][2][1])} {str(param[0][2][2])} {str(param[0][1])}\n"
 
         
         elif fig == "plano":
@@ -204,9 +204,52 @@ def geomaMCNP(figs, figs_num):
                 param=planoaMCNP(figs[fig][i])
                 num=figs_num[fig][i]
                 
-                cadena+=f"    {str(num)}       p {str(param[0])} {str(param[1])} {str(param[2])} {str(param[3])}\n"
-
+                cadena+=f"    {str(num)}       p {str(param[0][0])} {str(param[0][1])} {str(param[0][2])} {str(param[0][3])}\n"
+        
+        elif fig == "conot":
+            for i in range(len(figs[fig])):
+                param=conoTruncadoaMCNP(figs[fig][i])
+                num=figs_num[fig][i]
                 
+                cadena+=f"    {str(num)}       trc {str(param[0][0])} {str(param[0][1])} {str(param[0][2])} {str(param[0][3])} {str(param[0][4])} {str(param[0][5])} {str(param[0][6])} {str(param[0][7])}\n"
+                
+        elif fig == "paralelepipedos":
+            for i in range(len(figs[fig])):
+                param=ParalelepipedoaMCNP(figs[fig][i])
+                num=figs_num[fig][i]
+                
+                cadena+=f"    {str(num)}       {param[1]} "
+                
+                for i in param[0]:
+                    cadena+=f"{str(i)} "
+                    
+                cadena+="\n"
+                
+                
+            
+    figuras=cadena.split("\n")
+                
+    def orden(lista):
+        l=lista.split(" ")
+        while "" in l:
+            l.remove("")
+        
+        if l:
+            return int(l[0])
+        
+        else: 
+            return 9999999
+    
+    
+    figuras.sort(key=orden)
+    figuras.pop()
+    
+    figuras="\n".join(figuras)
+        
+
+    return figuras
+
+          
 def MCNPacilindro(*param,tipo="rcc"):
 
 	if tipo =="rcc":
@@ -371,7 +414,7 @@ def conoTruncadoaMCNP(conot):
     base=conot.poligonos_convexos[0].punto_cent
     r1=(conot.poligonos_convexos[0].punto_cent.apunta()-conot.poligonos_convexos[0].puntos[0].apunta()).magn()
     r2=(conot.poligonos_convexos[1].punto_cent.apunta()-conot.poligonos_convexos[1].puntos[0].apunta()).magn()
-    vec=(conot.poligonos_convexos[0].punto_cent.apunta()-conot.poligonos_convexos[1].punto_cent.apunta()).magn()
+    vec=conot.poligonos_convexos[1].punto_cent.apunta()-conot.poligonos_convexos[0].punto_cent.apunta()
     
     return (base.x, base.y, base.z, vec[0], vec[1], vec[2], r1, r2), "trc"
         
@@ -391,7 +434,6 @@ def MCNPGeomaLista(cadena, param_faltante=False):
         return False
         
     elif isfloat(lista[0]) and verificarFloatLista(lista)[1] and param_faltante:
-        print("hola3")
         return float(lista[0])
     
     elif "c" in lista[0]:
@@ -428,10 +470,10 @@ def lecturaMCNP(ruta_archivo):
         for linea in archivo:
             cont=0
             linea=linea.strip()
-            print(linea)
+            #print(linea)
             lec=MCNPGeomaLista(linea)
 
-            print(lec)
+            #print(lec)
             
             if not lec:
                 continue
@@ -448,11 +490,13 @@ def lecturaMCNP(ruta_archivo):
                 param=len(lec[2])
                 
                 if lec[1] in params:
-                    if params[lec[1]] != param:
+                    
+                    if param not in params[lec[1]]:
                         faltante=archivo.readline()
+                        print(faltante)
                         
                         lec[2].append(MCNPGeomaLista(faltante, param_faltante=True))
-                        print(lec[2])
+                        #print(lec[2])
                 
                 if not geom:
                     geom.append(lec)
@@ -504,8 +548,7 @@ def MCNPaGeom(con):
         
     return figuras, figuras_num
             
-            
-            
+
 if __name__=="__main__":
     prueba="""    1       rpp -75 75 -75 75 -75 75  
     2       rpp -75 75 -75 75 -75 75"""

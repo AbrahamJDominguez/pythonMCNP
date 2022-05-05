@@ -31,7 +31,7 @@ from poliedroConvexo import poliedroConvexo
 from matrix import matrix
 from utilidades import geomRenderVertices2, geomRenderCaras
 from geometriaRender import geometria
-from MCNPpython import lecturaMCNP, MCNPaGeom
+from MCNPpython import lecturaMCNP, MCNPaGeom, geomaMCNP
 from tkinter import messagebox
 
 ############################################################################################################################################
@@ -87,53 +87,55 @@ class interfaz(tk.Tk):
             self._leer_archivo("")
         
     def _leer_archivo(self, evento):
-        try:        
-            geoms=MCNPaGeom(lecturaMCNP(self.archivo))
-            self.figuras=geoms[0]
-            self.figuras_num=geoms[1]
-            self._cambioFig()
-            self._cambio()
-        except:
-            print("No se pudo leer el archivo")
-            if interfaz.ventana < 1:
-                self.dial = tk.Toplevel()
-                interfaz.ventana+=1
-                interfaz.posx_y += 50
-                tamypos = '200x100+'+str(interfaz.posx_y)+ \
-                          '+'+ str(interfaz.posx_y)
-                self.dial.geometry(tamypos)
-                self.dial.resizable(50,50)
-                self.dial.minsize(400, 650)
-                ident = self.dial.winfo_id()
-                titulo = str(interfaz.ventana)+": "+str(ident)
-                self.dial.title(titulo)
-                self.arbr = open(self.archivo)
-                self.g=0
-                def destruir():
-                    if self.g==0:
-                        self.dial.destroy()
-                        interfaz.ventana-=1
-                    else:
-                        self.dial.destroy()
-                        self.archiv.close()
-                        interfaz.ventana-=1
-                def escribir():
-                    self.arbr.close()
-                    self.archiv = open(self.archivo,"w")
-                    self.archiv.write(Lector.get("1.0", "end-1c"))
-                    self.g=1
-                Lector = tk.Text(self.dial, height =30, width = 100, bg = "light cyan")
-                Sescri = tk.Button(self.dial, height = 2, width = 20, text = "GUARDAR", command = lambda:escribir())
-                cerrar = tk.Button(self.dial, height = 2, width = 20, text='CERRAR', command=destruir)
-                Lector.insert(tk.END, self.arbr.read())
-                Lector.pack()
-                Sescri.pack()
-                cerrar.pack()
-                self.dialogo.protocol("WM_DELETE_WINDOW", self._cerrado_tacha)
-            else:
-                print("Por favor cierre la otra ventana emergente")
-        #vertices={item: val.punto_arreglo() for item, val in enumerate(esfera.con_puntos)}
-        #self._manejo_geometria._vertices= vertices
+        # try:        
+        geoms=MCNPaGeom(lecturaMCNP(self.archivo))
+        self.figuras=geoms[0]
+        self.figuras_num=geoms[1]
+        self._manejo_geometria._caras=[]
+        self._manejo_geometria._vertices={}
+        self._cambioFig()
+        self._cambio()
+        # except:
+        #     print("No se pudo leer el archivo")
+        #     if interfaz.ventana < 1:
+        #         self.dial = tk.Toplevel()
+        #         interfaz.ventana+=1
+        #         interfaz.posx_y += 50
+        #         tamypos = '200x100+'+str(interfaz.posx_y)+ \
+        #                   '+'+ str(interfaz.posx_y)
+        #         self.dial.geometry(tamypos)
+        #         self.dial.resizable(50,50)
+        #         self.dial.minsize(400, 650)
+        #         ident = self.dial.winfo_id()
+        #         titulo = str(interfaz.ventana)+": "+str(ident)
+        #         self.dial.title(titulo)
+        #         self.arbr = open(self.archivo)
+        #         self.g=0
+        #         def destruir():
+        #             if self.g==0:
+        #                 self.dial.destroy()
+        #                 interfaz.ventana-=1
+        #             else:
+        #                 self.dial.destroy()
+        #                 self.archiv.close()
+        #                 interfaz.ventana-=1
+        #         def escribir():
+        #             self.arbr.close()
+        #             self.archiv = open(self.archivo,"w")
+        #             self.archiv.write(Lector.get("1.0", "end-1c"))
+        #             self.g=1
+        #         Lector = tk.Text(self.dial, height =30, width = 100, bg = "light cyan")
+        #         Sescri = tk.Button(self.dial, height = 2, width = 20, text = "GUARDAR", command = lambda:escribir())
+        #         cerrar = tk.Button(self.dial, height = 2, width = 20, text='CERRAR', command=destruir)
+        #         Lector.insert(tk.END, self.arbr.read())
+        #         Lector.pack()
+        #         Sescri.pack()
+        #         cerrar.pack()
+        #         self.dialogo.protocol("WM_DELETE_WINDOW", self._cerrado_tacha)
+        #     else:
+        #         print("Por favor cierre la otra ventana emergente")
+        # #vertices={item: val.punto_arreglo() for item, val in enumerate(esfera.con_puntos)}
+        # #self._manejo_geometria._vertices= vertices
                 
     def _mover_arriba(self, event):
         #self._manejo_geometria.POSICION_OBJ[0]+=self.TAMANO_PASO
@@ -166,7 +168,7 @@ class interfaz(tk.Tk):
         self._crear_rotador_y()
         self._crear_rotador_z()
         self._boton_reiniciar_rotacion()
-        #self._boton_generar_cubo()
+        self._boton_convertir_txt()
         self._boton_generar_paralelepipedo()
         self._boton_generar_esfera()
         self._boton_generar_cilindro()
@@ -207,8 +209,8 @@ class interfaz(tk.Tk):
     def _boton_reiniciar_rotacion(self):
         ttk.Button(self, text="Reiniciar angulos", command=self._reiniciar_rotacion).place(relx=self.X_REL, rely=0.9, relheight=0.05, relwidth=0.2, anchor="ne")
   
-    # def _boton_generar_cubo(self):
-    #     ttk.Button(self, text="Generar paralelepipedo", command=self._generar_cubo).place(relx=self.X_REL -.1, rely=0.6, relheight=0.05, relwidth=0.1, anchor="ne")
+    def _boton_convertir_txt(self):
+        ttk.Button(self, text="Generar texto", command=self._generar_txt).place(relx=self.X_REL, rely=0.6, relheight=0.05, relwidth=0.1, anchor="ne")
 
     def _boton_generar_esfera(self):
         ttk.Button(self, text="Generar esfera", command=self._generar_esfera).place(relx=self.X_REL -.1, rely=0.5, relheight=0.05, relwidth=0.1, anchor="ne")
@@ -232,6 +234,10 @@ class interfaz(tk.Tk):
     def _cerrado_tacha(self):
         interfaz.ventana-=1
         self.dialogo.destroy()
+        
+    def _generar_txt(self):
+        txt=geomaMCNP(self.figuras, self.figuras_num)
+        print(txt)
 
     def _crear_cilindro_param(self, H, R, X, Y, Z):
         cilindro=poliedroConvexo.cilindro(punto(X,Y,Z), R, vector(0,0,H))
