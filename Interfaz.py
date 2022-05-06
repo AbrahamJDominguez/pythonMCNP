@@ -60,7 +60,7 @@ class interfaz(tk.Tk):
         self.cambio=True
         self.cambioFig=False
         self._manejo_geometria=geometria(self.ANCHO_CANVAS,self.ALTURA_CANVAS)
-        self._manejo_planos=geometria(self.ANCHO_CANVAS,self.ALTURA_CANVAS)
+        self._manejo_planos=geometria(self.ANCHO_CANVAS,self.ALTURA_CANVAS, opacidad=True)
         self._iniciar_ventana(titulo, tam_min)
         self._crear_herramientas()
         self._reiniciar_rotacion()
@@ -190,7 +190,7 @@ class interfaz(tk.Tk):
 
     def _crear_herramienta_zoom(self):
         ttk.Label(self, text="Zoom", foreground="#FFFFFF", background="#131313").place(relx=self.X_REL, rely=0.052, relheight=0.035, relwidth=0.2, anchor="ne")
-        self.deslizante_zoom=ttk.Scale(self, from_=0.01, to=10000, orient="horizontal", command=self._cambio_zoom)
+        self.deslizante_zoom=ttk.Scale(self, from_=-5, to=5, orient="horizontal", command=self._cambio)
         self.deslizante_zoom.set(self._manejo_geometria._zoom)
         self.deslizante_zoom.place(relx=self.X_REL, rely=0.01, relheight=0.04, relwidth=0.2, anchor="ne")
 
@@ -698,10 +698,6 @@ class interfaz(tk.Tk):
 
     def _cambio(self,*arg):
         self.cambio=True
-        
-    def _cambio_zoom(self, *arg):
-        self._manejo_planos._zoom=self._manejo_geometria._zoom
-        self._cambio()
 
     def _cambioFig(self, *args):
         self.cambioFig=True
@@ -724,6 +720,7 @@ class interfaz(tk.Tk):
 
     def _obtener_zoom(self):
         self._manejo_geometria._zoom=self.deslizante_zoom.get()
+        self._manejo_planos._zoom=self._manejo_geometria._zoom
         
     def _cambio_ventana(self, evento):
         self._manejo_geometria.CANVAS_WIDTH=self.canvas.winfo_width()
@@ -740,8 +737,8 @@ class interfaz(tk.Tk):
             self.cambioFig=False
         if self.cambio and len(self._manejo_geometria._caras):
             self.canvas.delete("all")
+            self.canvas=self._manejo_planos.dibujar_objeto(self.canvas,  root=self)
             self.canvas=self._manejo_geometria.dibujar_objeto(self.canvas)
-            self.canvas=self._manejo_planos.dibujar_objeto(self.canvas, opacidad=True, root=self)
 
             self.cambio=False
 

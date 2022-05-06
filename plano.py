@@ -162,8 +162,7 @@ class plano(objeto):
             p4=punto(lejos, lejos, param[3])
             
             pol=poligonoConvexo((p1,p2,p3,p4))
-            print(pol)
-            
+
             pol.plano.p=self.p
             pol.plano.n=self.n
             

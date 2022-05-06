@@ -7,9 +7,10 @@ Created on Tue Apr 12 12:51:06 2022
 from utilidades import FLOAT_EPS, geomRenderVertices2, geomRenderCaras
 from matrix import matrix
 from PIL import Image, ImageDraw, ImageTk
+import math
 
 class geometria:
-    def __init__(self, canvas_width, canvas_height):
+    def __init__(self, canvas_width, canvas_height, opacidad=False):
         self.CANVAS_WIDTH = canvas_height
         self.CANVAS_HEIGHT= canvas_height
         self.POSICION_OBJ = [canvas_width // 2, canvas_height-20]
@@ -23,6 +24,7 @@ class geometria:
         self.LLENAR=""
         self.COLOR_LINEA="#0000FF"
         self.COLOR_PUNTO="#000000"
+        self.opacidad=opacidad
 
     def cambiar_color_llenado(self, color, no_llenado=False):
         if(no_llenado):
@@ -50,7 +52,7 @@ class geometria:
         rotado2d=rot_z*rotado2d
         
         try:
-            z=0.5/(self._zoom-rotado2d[2][0])
+            z=0.5/(1/10**self._zoom-rotado2d[2][0])
             
         except ZeroDivisionError:
             z=0.00001
@@ -76,7 +78,7 @@ class geometria:
         canvas.create_oval(point[0],point[1],point[0],point[1], width=POINT_SIZE, fill=self.COLOR_PUNTO)
         return canvas
 
-    def dibujar_caras(self, canvas, puntos, root, opacidad=False):
+    def dibujar_caras(self, canvas, puntos, root):
 
         for cara in self._caras:
             #print(puntos)
@@ -87,7 +89,7 @@ class geometria:
 
             for point in dibujar:
                 
-                if point[0]<0 or point[1]<0 or point[0] > self.CANVAS_WIDTH or point[1] > self.CANVAS_HEIGHT and not opacidad:
+                if point[0]<0 or point[1]<0 or point[0] > self.CANVAS_WIDTH or point[1] > self.CANVAS_HEIGHT and not self.opacidad:
                     cond=True
                     continue
                 
@@ -95,15 +97,19 @@ class geometria:
 
                 #canvas = self.dibujar_punto(point, canvas)
                 
-            if opacidad:
+            if self.opacidad:
                 
-                canvas.create_image(0,0,self.create_polygon_tr(root, canvas, *dibujar))
+                #im=self.create_polygon_tr(root, canvas, *dibujar)
+                #canvas.create_image(0,0, image=im)
+                canvas.create_polygon(dibujar, outline= self.COLOR_LINEA, fill= "blue",stipple="gray50")
+                
                 
             if cond:
                 continue
             
+            if not self.opacidad:
 
-            canvas.create_polygon(dibujar, outline= self.COLOR_LINEA, fill= self.LLENAR)
+                canvas.create_polygon(dibujar, outline= self.COLOR_LINEA, fill= self.LLENAR)
                 
             
 
@@ -122,7 +128,7 @@ class geometria:
 
         canvas.create_line(puntos_proyectados[0],puntos_proyectados[1])
 
-    def dibujar_objeto(self, canvas, opacidad=False, root=""):
+    def dibujar_objeto(self, canvas, root=""):
         puntos_proyectados = {}
 
         rot_x, rot_y, rot_z =self._matriz_rotacion()   
@@ -133,30 +139,37 @@ class geometria:
         #print(puntos_proyectados[vertice[0]][1])
         #
         # print(puntos_proyectados)
-        return self.dibujar_caras(canvas, puntos_proyectados, root=root, opacidad=opacidad )
+        return self.dibujar_caras(canvas, puntos_proyectados, root=root )
 
 
-    def create_polygon_tr(self, root,canvas, *args, fill="blue", alpha=0.3):
+    def create_polygon_tr(self, root,canvas, *args, fill="blue", alpha=0.8):
         
         if args:
             
-            try:
-                aux=[]
-                for i in args:
-                    aux+=i
-                images = []  # to hold the newly created image(s)  
-                # Get and process the input data
-                fill = canvas.winfo_rgb(fill)\
-                       + (int(alpha* 255),)
-        
-                image = Image.new("RGBA", (max(aux[::2]), max(aux[1::2])))
-                ImageDraw.Draw(image).polygon(aux, fill=fill, outline=None)
-        
-                images.append(ImageTk.PhotoImage(image))  # prevent the Image from being garbage-collected
-                canvas.create_image(0, 0, image=images[-1], anchor="nw")  # insert the Image to the 0, 0 coords
-                
-                return canvas.images[-1]
+            #try:
+            aux=[]
+            for i in args:
+                aux+=i
+            images = []  # to hold the newly created image(s)  
+            # Get and process the input data
+            fill = canvas.winfo_rgb(fill)\
+                   + (int(alpha* 255),)
+                   
+            fill=(0, 0, 65535, 127)
+    
+            image = Image.new("RGBA", (max(aux[::2]), max(aux[1::2])))
+            ImageDraw.Draw(image).polygon(aux, fill=fill, outline=self.COLOR_LINEA)
+    
+            #images.append()  # prevent the Image from being garbage-collected
+            #canvas.create_image(0, 0, image=images[-1], anchor="nw")# insert the Image to the 0, 0 coords
+
             
-            except:
-                "Error"
+            return ImageTk.PhotoImage(image)
+            
+            # except:
+                
+            #     return canvas
+            
+        else:
+            return canvas
     
