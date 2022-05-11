@@ -48,6 +48,8 @@ class interfaz(tk.Tk):
     FONDO="#0b0b0b"
     figuras={"esferas":list(),"paralelepipedos":list(),"plano":list(),"cilindro":list(), "conot":list()}
     pplanos=[]
+    rec=None
+    lejos=None
     figuras_num={"esferas":list(),"paralelepipedos":list(),"plano":list(),"cilindro":list(), "conot":list()}
     # Declara una variable de clase para contar ventanas
     ventana = 0
@@ -93,8 +95,13 @@ class interfaz(tk.Tk):
         geoms=MCNPaGeom(lecturaMCNP(self.archivo))
         self.figuras=geoms[0]
         self.figuras_num=geoms[1]
+        self.rec=geoms[2]
+        if self.rec:
+            self.lejos=abs((self.rec.punto_central.apunta()-self.rec.poligonos_convexos[0].puntos[0].apunta()).magn())*0.45
         self._manejo_geometria._caras=[]
         self._manejo_geometria._vertices={}
+        self._manejo_planos._caras=[]
+        self._manejo_planos._vertices={}
         self._cambioFig()
         self._cambio()
         # except:
@@ -242,7 +249,7 @@ class interfaz(tk.Tk):
         self.dialogo.destroy()
         
     def _generar_txt(self):
-        txt=geomaMCNP(self.figuras, self.figuras_num)
+        txt=geomaMCNP(self.figuras, self.figuras_num, self.rec, lejos=self.lejos)
         print(txt)
 
     def _crear_cilindro_param(self, H, R, X, Y, Z):
@@ -670,13 +677,16 @@ class interfaz(tk.Tk):
             for geom in self.figuras:
                 if geom == "plano":
                     for fig in self.figuras[geom]:
+                        #print(str(fig) + "hola")
                         
-                        verticesp=geomRenderVerticesP2(fig, verticesp)
+                        lejos=abs((self.rec.punto_central.apunta()-self.rec.poligonos_convexos[0].puntos[0].apunta()).magn())*0.45
+                        
+                        verticesp=geomRenderVerticesP2(fig, verticesp, lejos=lejos)
                         
                         if not verticesp:
                             continue
                         
-                        carasp=geomRenderPlano(fig, verticesp)[0]+carasp
+                        carasp=geomRenderPlano(fig, verticesp, lejos=lejos)[0]+carasp
                                            
                     continue
                 
@@ -737,7 +747,8 @@ class interfaz(tk.Tk):
             self.cambioFig=False
         if self.cambio and len(self._manejo_geometria._caras):
             self.canvas.delete("all")
-            self.canvas=self._manejo_planos.dibujar_objeto(self.canvas,  root=self)
+            if len(self._manejo_planos._caras):
+                self.canvas=self._manejo_planos.dibujar_objeto(self.canvas,  root=self)
             self.canvas=self._manejo_geometria.dibujar_objeto(self.canvas)
 
             self.cambio=False

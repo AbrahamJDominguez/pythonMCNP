@@ -85,16 +85,16 @@ def planoaMCNP(plano):
     p=plano.p
     
     if normal.paralelo(vector.x_uni()):
-        return (plano.for_gen()), "p"
-        # return (p.x), "px"
+        #return (plano.for_gen()), "p"
+        return (p.x), "px"
     
     elif normal.paralelo(vector.y_uni()):
-        return (plano.for_gen()), "p"
-        # return (p.y), "py"
+        #return (plano.for_gen()), "p"
+        return (p.y), "py"
     
     elif normal.paralelo(vector.z_uni()):
-        return (plano.for_gen()), "p"
-        # return (p.z), "pz"
+        #return (plano.for_gen()), "p"
+        return (p.z), "pz"
     
     else:
         return (plano.for_gen()), "p"
@@ -137,48 +137,54 @@ def esferaaMCNP(esfera):
     
     elif esfera.punto_central.y == 0 and esfera.punto_central.z == 0:
     	#distancia_centro_punto=esfera.punto_central.apunta()-list(esfera.con_puntos)[0].apunta()
-    	return (esfera.punto_central,distancia_centro_punto), "sx"
+    	return (esfera.punto_central.x,distancia_centro_punto), "sx"
     
     elif esfera.punto_central.x == 0 and esfera.punto_central.z == 0:
     	#distancia_centro_punto=esfera.punto_central.apunta()-list(esfera.con_puntos)[0].apunta()
-    	return (esfera.punto_central,distancia_centro_punto), "sy"
+    	return (esfera.punto_central.y,distancia_centro_punto), "sy"
     
     elif esfera.punto_central.x == 0 and esfera.punto_central.y == 0:
     	#distancia_centro_punto=esfera.punto_central.apunta()-list(esfera.con_puntos)[0].apunta()
-    	return (esfera.punto_central,distancia_centro_punto), "sz"
+    	return (esfera.punto_central.z,distancia_centro_punto), "sz"
     
     else:
         #distancia_centro_punto=esfera.punto_central.apunta()-list(esfera.con_puntos)[0].apunta()
         return (esfera.punto_central,distancia_centro_punto), "s"
 
-def cilindroaMCNP(cilindro):
+def cilindroaMCNP(cilindro, lejos=100):
     p=cilindro.poligonos_convexos[0].punto_cent
+    p2=cilindro.poligonos_convexos[1].punto_cent.apunta()
+    cond=False
+    
+    if (p.apunta()-p2).magn()>0 and (p.apunta()-p2).magn()>lejos:
+        cond=True
+        
     r=redond((cilindro.poligonos_convexos[0].punto_cent.apunta()-cilindro.poligonos_convexos[0].puntos[0].apunta()).magn())
     v=cilindro.poligonos_convexos[1].punto_cent.apunta()-cilindro.poligonos_convexos[0].punto_cent.apunta()
     
-    if v.paralelo(vector.x_uni()) and (np.abs(p.y) > FLOAT_EPS  or np.abs(p.z) > FLOAT_EPS):
+    if v.paralelo(vector.x_uni()) and (np.abs(p.y) > FLOAT_EPS  or np.abs(p.z) > FLOAT_EPS) and cond:
         return (p,r,v), "c/x"
     
-    elif v.paralelo(vector.x_uni()) and (np.abs(p.y) < FLOAT_EPS  and np.abs(p.z) < FLOAT_EPS):
+    elif v.paralelo(vector.x_uni()) and (np.abs(p.y) < FLOAT_EPS  and np.abs(p.z) < FLOAT_EPS) and cond:
         return (p,r,v), "cx"
     
-    elif v.paralelo(vector.y_uni()) and (np.abs(p.x) > FLOAT_EPS  or np.abs(p.z) > FLOAT_EPS):
+    elif v.paralelo(vector.y_uni()) and (np.abs(p.x) > FLOAT_EPS  or np.abs(p.z) > FLOAT_EPS) and cond:
         return (p,r,v), "c/y"
     
-    elif v.paralelo(vector.y_uni()) and (np.abs(p.x) < FLOAT_EPS  and np.abs(p.z) < FLOAT_EPS):
+    elif v.paralelo(vector.y_uni()) and (np.abs(p.x) < FLOAT_EPS  and np.abs(p.z) < FLOAT_EPS) and cond:
         return (p,r,v), "cy"
     
-    elif v.paralelo(vector.z_uni()) and (np.abs(p.y) > FLOAT_EPS  or np.abs(p.x) > FLOAT_EPS):
-        return (p,r,v), "c/x"
+    elif ((v.paralelo(vector.z_uni())) and (np.abs(p.y) > FLOAT_EPS  or np.abs(p.x) > FLOAT_EPS) and (cond)):
+        return (p,r,v), "c/z"
     
-    elif v.paralelo(vector.z_uni()) and (np.abs(p.y) < FLOAT_EPS  and np.abs(p.x) < FLOAT_EPS):
+    elif v.paralelo(vector.z_uni()) and (np.abs(p.y) < FLOAT_EPS  and np.abs(p.x) < FLOAT_EPS) and cond:
         return (p,r,v), "cz"
     
     else:
         return (p,r,v), "rcc"
 
 
-def geomaMCNP(figs, figs_num):
+def geomaMCNP(figs, figs_num, rec, lejos=100):
     
     cadena=""
     
@@ -188,15 +194,42 @@ def geomaMCNP(figs, figs_num):
                 param=esferaaMCNP(figs[fig][i])
                 num=figs_num[fig][i]
                 
-                cadena+=f"    {str(num)}       s {str(param[0][0].x)} {str(param[0][0].y)} {str(param[0][0].z)} {str(param[0][1])}\n"
+                if param[1] == "s":
                 
+                    cadena+=f"    {str(num)}       s {str(param[0][0].x)} {str(param[0][0].y)} {str(param[0][0].z)} {str(param[0][1])}\n"
+                    
+                elif param[1] == "so":
+                    
+                    cadena+=f"    {str(num)}       so {param[0][1]}\n"
+                    
+                else:
+                    
+                    cadena+=f"    {str(num)}       {param[1]} {param[0][0]} {param[0][1]}\n"
         
         elif fig == "cilindro":
             for i in range(len(figs[fig])):
-                param=cilindroaMCNP(figs[fig][i])
+                param=cilindroaMCNP(figs[fig][i], lejos)
                 num=figs_num[fig][i]
                 
-                cadena+=f"    {str(num)}       rcc {str(param[0][0].x)} {str(param[0][0].y)} {str(param[0][0].z)} {str(param[0][2][0])} {str(param[0][2][1])} {str(param[0][2][2])} {str(param[0][1])}\n"
+                if param[1] == "rcc":
+                
+                    cadena+=f"    {str(num)}       rcc {str(param[0][0].x)} {str(param[0][0].y)} {str(param[0][0].z)} {str(param[0][2][0])} {str(param[0][2][1])} {str(param[0][2][2])} {str(param[0][1])}\n"
+                    
+                elif param[1] == "c/x":
+                    
+                    cadena+=f"    {str(num)}       {param[1]} {param[0][0].y} {param[0][0].z} {param[0][1]}\n"
+                    
+                elif param[1] == "c/y":
+                    
+                    cadena+=f"    {str(num)}       {param[1]} {param[0][0].x} {param[0][0].z} {param[0][1]}\n"
+                    
+                elif param[1] == "c/z":
+                    
+                    cadena+=f"    {str(num)}       {param[1]} {param[0][0].x} {param[0][0].y} {param[0][1]}\n"
+                    
+                elif param[1] == "cx" or param[1] == "cy" or param[1] == "cz":
+                    
+                    cadena+=f"    {str(num)}       {param[1]} {param[0][1]}\n"
 
         
         elif fig == "plano":
@@ -204,7 +237,13 @@ def geomaMCNP(figs, figs_num):
                 param=planoaMCNP(figs[fig][i])
                 num=figs_num[fig][i]
                 
-                cadena+=f"    {str(num)}       p {str(param[0][0])} {str(param[0][1])} {str(param[0][2])} {str(param[0][3])}\n"
+                if param[1] == "p":
+                
+                    cadena+=f"    {str(num)}       p {str(param[0][0])} {str(param[0][1])} {str(param[0][2])} {str(param[0][3])}\n"
+                    
+                else:
+                    
+                    cadena+=f"    {str(num)}       {param[1]} {param[0]}\n"
         
         elif fig == "conot":
             for i in range(len(figs[fig])):
@@ -215,9 +254,21 @@ def geomaMCNP(figs, figs_num):
                 
         elif fig == "paralelepipedos":
             for i in range(len(figs[fig])):
-                param=ParalelepipedoaMCNP(figs[fig][i])
+                param=ParalelepipedoaMCNP(figs[fig][i], rec,lejos=lejos)
                 num=figs_num[fig][i]
                 
+                cadena+=f"    {str(num)}       {param[1]} "
+                
+                for i in param[0]:
+                    cadena+=f"{str(i)} "
+                    
+                cadena+="\n"
+                
+        elif fig == "conot":
+            for i in range(len(figs[fig])):
+                param=conoTruncadoaMCNP(figs[fig][i])
+                
+                num=figs_num[fig][i] 
                 cadena+=f"    {str(num)}       {param[1]} "
                 
                 for i in param[0]:
@@ -353,13 +404,27 @@ def MCNPaParalelepipedo(*param, tipo="rpp"):
             
             return poliedroConvexo.paralelepipedo(base, vec1, vec2, vec3)
         
-def ParalelepipedoaMCNP(paral):
+def ParalelepipedoaMCNP(paral, rec,lejos=100):
     cara=paral.poligonos_convexos[0]
     base=cara.puntos[0]
     cara2=paral.poligonos_convexos[1]
     vec1=cara.puntos[1].apunta()-base.apunta()
     vec2=cara.puntos[3].apunta()-base.apunta()
     idx=cara2.puntos.index(base)
+    
+    opuesto1=paral.poligonos_convexos[5].punto_cent.apunta()-paral.poligonos_convexos[0].punto_cent.apunta()
+    opuesto2=paral.poligonos_convexos[4].punto_cent.apunta()-paral.poligonos_convexos[1].punto_cent.apunta()
+    opuesto3=paral.poligonos_convexos[3].punto_cent.apunta()-paral.poligonos_convexos[2].punto_cent.apunta()
+    
+    if (opuesto1.magn() >= lejos or opuesto2.magn() >= lejos or opuesto3.magn() >= lejos) and paral != rec:
+        if opuesto1.magn() >= lejos:
+            return (*base, *opuesto2, *opuesto3), "box"
+        
+        if opuesto2.magn() >= lejos:
+            return (*base, *opuesto1, *opuesto3), "box"
+        
+        if opuesto3.magn() >= lejos:
+            return (*base, *opuesto1, *opuesto2), "box"          
     
     if idx + 1 > len(cara2.puntos)-1:
         cand1=0
@@ -519,6 +584,9 @@ def MCNPaGeom(con):
     
     figuras={"esferas":list(),"paralelepipedos":list(),"plano":list(),"cilindro":list(), "conot":list()}
     figuras_num={"esferas":list(),"paralelepipedos":list(),"plano":list(),"cilindro":list(), "conot":list()}
+    vol=0
+    v=0
+    rec=None
     
     for fig in con:
         
@@ -527,26 +595,47 @@ def MCNPaGeom(con):
         if fig[1][0] == "p":
 
             figuras_num["plano"].append(fig[0])
+                
             figuras["plano"].append(MCNPaPlano(*fig[2], tipo=fig[1]))
             
         elif fig[1][0] == "s":
             figuras_num["esferas"].append(fig[0])
-            figuras["esferas"].append(MCNPaEsfera(*fig[2], tipo=fig[1]))
+            f=MCNPaEsfera(*fig[2], tipo=fig[1])
+            figuras["esferas"].append(f)
+            v=f.volumen()
+            if v > vol:
+                vol=v
+                rec=f
             
         elif fig[1][0] == "c" or fig[1] == "rcc":
             figuras_num["cilindro"].append(fig[0])
-            figuras["cilindro"].append(MCNPacilindro(*fig[2], tipo=fig[1]))
+            f=MCNPacilindro(*fig[2], tipo=fig[1])
+            figuras["cilindro"].append(f)
+            v=f.volumen()
+            if v > vol:
+                vol=v
+                rec=f
             
         elif fig[1] == "rpp" or fig[1] == "box":
             #continue
             figuras_num["paralelepipedos"].append(fig[0])
-            figuras["paralelepipedos"].append(MCNPaParalelepipedo(*fig[2], tipo=fig[1]))
+            f=MCNPaParalelepipedo(*fig[2], tipo=fig[1])
+            figuras["paralelepipedos"].append(f)
+            v=f.volumen()
+            if v > vol:
+                vol=v
+                rec=f
             
         elif fig[1] == "trc":
             figuras_num["conot"].append(fig[0])
-            figuras["conot"].append(MCNPaConoTruncado(*fig[2]))
+            f=MCNPaConoTruncado(*fig[2])
+            figuras["conot"].append(f)
+            v=f.volumen()
+            if v > vol:
+                vol=v
+                rec=f
         
-    return figuras, figuras_num
+    return figuras, figuras_num, rec
             
 
 if __name__=="__main__":

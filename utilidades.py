@@ -84,14 +84,16 @@ def geomRenderVertices2(poliedro,vertices):
     #print(vertices)
     return vertices
 
-def geomRenderVerticesP(plano):
+def geomRenderVerticesP(plano, lejos):
+    #print(type(plano))
     
-    vertices={item: val.punto_arreglo() for item, val in enumerate(plano.crear_poli())}
+    vertices={item: val.punto_arreglo() for item, val in enumerate(plano.crear_poli(lejos))}
     #print(vertices)
     return vertices
 
-def geomRenderVerticesP2(plano,vertices):
-    vertices2=geomRenderVerticesP(plano)
+def geomRenderVerticesP2(plano,vertices, lejos=50):
+    #print(type(plano))
+    vertices2=geomRenderVerticesP(plano, lejos)
     orig=len(vertices)
     
     for num in vertices2:
@@ -122,9 +124,9 @@ def geomRenderCaras(poliedro, vertices:dict):
     #print(caras)
     return caras, vertices
 
-def geomRenderPlano(plan, vertices:dict):
+def geomRenderPlano(plan, vertices:dict, lejos=50):
     caras=[]
-    cara=plan.crear_poli()
+    cara=plan.crear_poli(lejos)
     aux=[]
     for point in cara.puntos:
         llave=keyValue(vertices, point.punto_arreglo())

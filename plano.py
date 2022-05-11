@@ -102,7 +102,7 @@ class plano(objeto):
         else:
             return NotImplementedError("El segundo parametro debe ser un vector")
         
-    def crear_poli(self, lejos=50):
+    def crear_poli(self, lejos=100):
         from poligonoConvexo import poligonoConvexo
         
         param=self.for_gen()
@@ -163,6 +163,65 @@ class plano(objeto):
             
             pol=poligonoConvexo((p1,p2,p3,p4))
 
+            pol.plano.p=self.p
+            pol.plano.n=self.n
+            
+            return pol
+        
+        elif abs(param[2])==0 and abs(param[1])!=0 and abs(param[0])!=0:
+            
+            p1=(-(param[0]*(-lejos)+param[2]*(-lejos))+param[3])/param[1]
+            p2=(-(param[0]*lejos+param[2]*(lejos))+param[3])/param[1]
+            p3=(-(param[1]*(-lejos)+param[2]*(-lejos))+param[3])/param[0]
+            p4=(-(param[1]*(lejos)+param[2]*(lejos))+param[3])/param[0]
+            
+            p1=punto((-lejos), p1, lejos)
+            p2=punto(lejos, p2,p1.z)
+            p3=punto(p3, -lejos, -lejos)
+            p4=punto(p4,lejos, p3.z)
+            
+            pol=poligonoConvexo((p1,p2,p3,p4))
+            
+            pol.plano.p=self.p
+            pol.plano.n=self.n
+            
+            
+            return pol
+        
+        elif abs(param[1])==0 and abs(param[0])!=0 and abs(param[2])!=0:
+            
+            p1=(-(param[1]*(-lejos)+param[2]*(-lejos))+param[3])/param[0]
+            p2=(-(param[1]*lejos+param[2]*(lejos))+param[3])/param[0]
+            p3=(-(param[0]*(-lejos)+param[1]*(-lejos))+param[3])/param[2]
+            p4=(-(param[0]*(lejos)+param[1]*(lejos))+param[3])/param[2]
+            
+            p1=punto(p1, lejos, -lejos)
+            p2=punto(p2, p1.y,lejos)
+            p3=punto(-lejos, -lejos, p3)
+            p4=punto(lejos, p3.y, p4)
+            
+            pol=poligonoConvexo((p1,p2,p3,p4))
+            
+            pol.plano.p=self.p
+            pol.plano.n=self.n
+            
+            
+            return pol
+        
+        elif abs(param[0])==0 and abs(param[1])!=0 and abs(param[2])!=0:
+            
+            p1=(-(param[0]*(-lejos)+param[2]*(-lejos))+param[3])/param[1]
+            p2=(-(param[0]*lejos+param[2]*(lejos))+param[3])/param[1]
+            p3=(-(param[0]*(-lejos)+param[1]*(-lejos))+param[3])/param[2]
+            p4=(-(param[0]*(lejos)+param[1]*(lejos))+param[3])/param[2]
+            
+            p1=punto(lejos, p1, -lejos)
+            p2=punto(p1.x, p2,lejos)
+            p3=punto(-lejos, -lejos, p3)
+            p4=punto(p3.x,lejos, p4)
+            
+            pol=poligonoConvexo((p1,p2,p3,p4))
+            
             pol.plano.p=self.p
             pol.plano.n=self.n
             
