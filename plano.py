@@ -10,6 +10,7 @@ from solucion import resuelve
 from utilidades import SIG_FIGURES, FLOAT_EPS
 from linea import linea
 from objeto import objeto
+import copy
 
 class plano(objeto):
     clase=2
@@ -115,7 +116,7 @@ class plano(objeto):
             p4=(-(param[1]*(lejos)+param[2]*(lejos))+param[3])/param[0]
             
             p1=punto((-lejos),(-lejos), p1)
-            p2=punto((lejos/2), p2,(lejos/2))
+            p2=punto(p1.x, p2,(lejos/2))
             p3=punto(p3, p2.y, p1.z)
             p4=punto(p4,(lejos),(lejos))
             
@@ -175,12 +176,23 @@ class plano(objeto):
             p3=(-(param[1]*(-lejos)+param[2]*(-lejos))+param[3])/param[0]
             p4=(-(param[1]*(lejos)+param[2]*(lejos))+param[3])/param[0]
             
-            p1=punto((-lejos), p1, lejos)
-            p2=punto(lejos, p2,p1.z)
-            p3=punto(p3, -lejos, -lejos)
-            p4=punto(p4,lejos, p3.z)
+            #p1=punto((-lejos), p1, -lejos)
+            #p2=punto(lejos, p2, lejos)
+            p3=punto(-lejos, -lejos, p3)
+            p4=punto(-lejos, lejos, p4)
+            
+            otgn=-(p3.apunta()-p4.apunta())
+            
+            
+            
+            #p1=copy.deepcopy(p3).mover(-otgn.pcruz(self.n))
+            p2=copy.deepcopy(p4).mover(-otgn.pcruz(self.n)).mover(-otgn)
+            p1=copy.deepcopy(p2).mover(otgn)
+            
+            otgn=otgn.pcruz(self.n)
             
             pol=poligonoConvexo((p1,p2,p3,p4))
+            pol.mover(-(otgn.proyectar(pol.punto_cent.apunta())))
             
             pol.plano.p=self.p
             pol.plano.n=self.n
@@ -193,14 +205,25 @@ class plano(objeto):
             p1=(-(param[1]*(-lejos)+param[2]*(-lejos))+param[3])/param[0]
             p2=(-(param[1]*lejos+param[2]*(lejos))+param[3])/param[0]
             p3=(-(param[0]*(-lejos)+param[1]*(-lejos))+param[3])/param[2]
-            p4=(-(param[0]*(lejos)+param[1]*(lejos))+param[3])/param[2]
+            p4=(-(param[0]*(-lejos)+param[1]*(lejos))+param[3])/param[2]
             
-            p1=punto(p1, lejos, -lejos)
-            p2=punto(p2, p1.y,lejos)
+            # p1=punto(p1, -lejos, -lejos)
+            # p2=punto(p2, lejos, lejos)
             p3=punto(-lejos, -lejos, p3)
-            p4=punto(lejos, p3.y, p4)
+            p4=punto(-lejos, lejos, p4)
+            
+            otgn=-(p3.apunta()-p4.apunta())
+            
+            
+            
+            #p1=copy.deepcopy(p3).mover(-otgn.pcruz(self.n))
+            p2=copy.deepcopy(p4).mover(-otgn.pcruz(self.n)).mover(-otgn)
+            p1=copy.deepcopy(p2).mover(otgn)
+            
+            otgn=otgn.pcruz(self.n)
             
             pol=poligonoConvexo((p1,p2,p3,p4))
+            pol.mover(-(otgn.proyectar(pol.punto_cent.apunta())))
             
             pol.plano.p=self.p
             pol.plano.n=self.n
@@ -215,12 +238,23 @@ class plano(objeto):
             p3=(-(param[0]*(-lejos)+param[1]*(-lejos))+param[3])/param[2]
             p4=(-(param[0]*(lejos)+param[1]*(lejos))+param[3])/param[2]
             
-            p1=punto(lejos, p1, -lejos)
-            p2=punto(p1.x, p2,lejos)
+            #p1=punto(lejos, p1, -lejos)
+            #p2=punto(p1.x, p2,lejos)
             p3=punto(-lejos, -lejos, p3)
-            p4=punto(p3.x,lejos, p4)
+            p4=punto(-lejos, lejos, p4)
+            
+            otgn=-(p3.apunta()-p4.apunta())
+            
+            
+            
+            #p1=copy.deepcopy(p3).mover(-otgn.pcruz(self.n))
+            p2=copy.deepcopy(p4).mover(-otgn.pcruz(self.n)).mover(-otgn)
+            p1=copy.deepcopy(p2).mover(otgn)
+            
+            otgn=otgn.pcruz(self.n)
             
             pol=poligonoConvexo((p1,p2,p3,p4))
+            pol.mover(-(otgn.proyectar(pol.punto_cent.apunta())))
             
             pol.plano.p=self.p
             pol.plano.n=self.n

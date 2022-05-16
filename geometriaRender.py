@@ -85,17 +85,22 @@ class geometria:
             dibujar=[puntos[cara[i]] for i in range(len(cara))]
 
             cond=False
+            cont=0
             #print(dibujar)
 
             for point in dibujar:
                 
-                if point[0]<0 or point[1]<0 or point[0] > self.CANVAS_WIDTH or point[1] > self.CANVAS_HEIGHT and not self.opacidad:
+                if point[0]<0 or point[1]<0 or point[0] > self.CANVAS_WIDTH or point[1] > self.CANVAS_HEIGHT:# and not self.opacidad:
                     cond=True
                     continue
                 
                 cond=False
+                cont+=1
 
                 #canvas = self.dibujar_punto(point, canvas)
+                
+            if cond and cont<2:
+                continue
                 
             if self.opacidad:
                 
@@ -103,9 +108,6 @@ class geometria:
                 #canvas.create_image(0,0, image=im)
                 canvas.create_polygon(dibujar, outline= self.COLOR_LINEA, fill= "blue",stipple="gray50")
                 
-                
-            if cond:
-                continue
             
             if not self.opacidad:
 

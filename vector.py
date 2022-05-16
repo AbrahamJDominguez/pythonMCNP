@@ -91,6 +91,9 @@ class vector(object):
 
     def angulo(self,vectorb):
         return math.acos(self*vectorb/(self.magn()*vectorb.magn()))
+    
+    def proyectar(self, vectorb):
+        return self*((self*vectorb)/self.magn()**2)
 
     def ortogonal(self, vectorb):
         return self*vectorb == 0
