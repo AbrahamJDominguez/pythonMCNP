@@ -152,6 +152,9 @@ def esferaaMCNP(esfera):
         return (esfera.punto_central,distancia_centro_punto), "s"
 
 def cilindroaMCNP(cilindro, lejos=100):
+    if not lejos:
+        lejos=100
+        
     p=cilindro.poligonos_convexos[0].punto_cent
     p2=cilindro.poligonos_convexos[1].punto_cent.apunta()
     cond=False
@@ -533,7 +536,7 @@ def lecturaMCNP(ruta_archivo):
     with open(ruta_archivo, "r") as archivo:
         
         for linea in archivo:
-            cont=0
+
             linea=linea.strip()
             #print(linea)
             lec=MCNPGeomaLista(linea)
@@ -612,7 +615,7 @@ def MCNPaGeom(con):
             f=MCNPacilindro(*fig[2], tipo=fig[1])
             figuras["cilindro"].append(f)
             v=f.volumen()
-            if v > vol:
+            if v > vol and fig[1] == "rcc":
                 vol=v
                 rec=f
             
@@ -622,7 +625,7 @@ def MCNPaGeom(con):
             f=MCNPaParalelepipedo(*fig[2], tipo=fig[1])
             figuras["paralelepipedos"].append(f)
             v=f.volumen()
-            if v > vol:
+            if v > vol and len(fig[2]) in (6,2):
                 vol=v
                 rec=f
             

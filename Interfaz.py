@@ -24,15 +24,14 @@ from tkinter import filedialog
 #import MCNPpython
 from punto import punto
 from vector import vector
-#from plano import plano
-from linea import linea
+from plano import plano
 #from poligonoConvexo import polignoConvexo
 from poliedroConvexo import poliedroConvexo
-from matrix import matrix
 from utilidades import geomRenderVertices2, geomRenderCaras, geomRenderVerticesP2, geomRenderPlano
 from geometriaRender import geometria
 from MCNPpython import lecturaMCNP, MCNPaGeom, geomaMCNP
 from tkinter import messagebox
+import os
 
 ############################################################################################################################################
 ################################################## Clase geometria para optimizar la creacion de formas, sus metodos etc ###################
@@ -104,6 +103,7 @@ class interfaz(tk.Tk):
         self._manejo_planos._vertices={}
         self._cambioFig()
         self._cambio()
+
         # except:
         #     print("No se pudo leer el archivo")
         #     if interfaz.ventana < 1:
@@ -249,16 +249,63 @@ class interfaz(tk.Tk):
         self.dialogo.destroy()
         
     def _generar_txt(self):
-        txt=geomaMCNP(self.figuras, self.figuras_num, self.rec, lejos=self.lejos)
+        if self.lejos:
+            txt=geomaMCNP(self.figuras, self.figuras_num, self.rec, lejos=self.lejos)
+            
+        else:
+            txt=geomaMCNP(self.figuras, self.figuras_num, self.rec)
+            
         print(txt)
+        with open("cache.txt", "w") as archivo:
+            archivo.write(txt)
+            
+        archivo=open("cache.txt")
+        self.archivo="cache.txt"#"".join(archivo.readlines())
+        archivo.close()
+        self._leer_archivo("")
 
-    def _crear_cilindro_param(self, H, R, X, Y, Z):
-        cilindro=poliedroConvexo.cilindro(punto(X,Y,Z), R, vector(0,0,H))
+    def _crear_cilindro_param(self, Hx, Hy, Hz, R, X, Y, Z):
+        cilindro=poliedroConvexo.cilindro(punto(X,Y,Z), R, vector(Hx,Hy,Hz))
         hashes=[]
         for i in self.figuras["cilindro"]:
             hashes.append(hash(i))
         if hash(cilindro) not in hashes:
             self.figuras["cilindro"].append(cilindro)
+            
+            indices=[]
+            for i in self.figuras_num:
+                indices+=self.figuras_num[i]
+            
+            if not indices:
+                self.figuras_num["cilindro"].append(1)
+            else:
+                self.figuras_num["cilindro"].append(max(indices)+1)
+            
+            self._cambioFig()
+            self._cambio()
+            self._cambioFig()
+            self._cambio()
+            
+    def _crear_conot_param(self, Hx, Hy, Hz, R, R2, X, Y, Z):
+        cilindro=poliedroConvexo.conoTruncado(punto(X,Y,Z), R, R2,vector(Hx,Hy,Hz))
+        hashes=[]
+        for i in self.figuras["conot"]:
+            hashes.append(hash(i))
+        if hash(cilindro) not in hashes:
+            self.figuras["conot"].append(cilindro)
+            self._cambioFig()
+            self._cambio()
+            
+            indices=[]
+            for i in self.figuras_num:
+                indices+=self.figuras_num[i]
+                
+            if not indices:
+                self.figuras_num["conot"].append(1)
+            else:
+                self.figuras_num["conot"].append(max(indices)+1)
+
+            
             self._cambioFig()
             self._cambio()
             
@@ -283,7 +330,12 @@ class interfaz(tk.Tk):
             indices=[]
             for i in self.figuras_num:
                 indices+=self.figuras_num[i]
-            self.figuras_num["esferas"].append(max(indices)+1)
+                
+            if not indices:
+                self.figuras_num["esferas"].append(1)
+            else:
+                self.figuras_num["esferas"].append(max(indices)+1)
+            #self.figuras_num["esferas"].append(max(indices)+1)
             
             self._cambioFig()
             self._cambio()
@@ -300,33 +352,64 @@ class interfaz(tk.Tk):
             indices=[]
             for i in self.figuras_num:
                 indices+=self.figuras_num[i]
-            self.figuras_num["paralelepipedos"].append(max(indices)+1)
+                
+            if not indices:
+                self.figuras_num["paralelepipedos"].append(1)
+            else:
+                self.figuras_num["paralelepipedos"].append(max(indices)+1)
+            
             self._cambioFig()
             self._cambio()
 
-    def _crear_plano_param(self, x1, x2, x3, y1, y2, y3):
-        z1=((x2*y3)-(y2*x3))*0.0001
-        z2=((x3*y1)-(y3*x1))*0.0001
-        z3=((x1*y2)-(y1*x2))*0.0001
-        if (punto(z1,z2,z3)==punto(0,0,0)):
-            print("los vectores son paralelos")
-        else:
-            m=10000
-            plano=poliedroConvexo.paralelepipedo(punto(1,1,1),vector(m*x1,m*x2,m*x3),vector(m*y1,m*y2,m*y3),vector(z1,z2,z3))
+    def _crear_plano_param(self, x1, x2, x3, y1, y2, y3, px, py, pz, op=1):
+        
+        if op == 1:
+            
+            if (vector(x1,x2,x3).paralelo(vector(y1,y2,y3))):
+                print("los vectores son paralelos")
+            else:
+                
+                plan=plano(punto(px,py,pz),vector(x1,x2,x3),vector(y1,y2,y3))
+                hashes=[]
+                
+                    
+        elif op == 2:
+            if punto(x1, x2, x3) == punto(y1, y2, y3) or \
+                punto(x1, x2, x3) == punto(px, py, pz) or \
+                    punto(y1, y2, y3) == punto(px, py, pz): 
+                print("Los puntos deben ser diferentes")
+                
+            else:
+                plan=plano(punto(x1, x2, x3),punto(y1, y2, y3),punto(px, py, pz))
+                hashes=[]
+                
+        elif op == 3:
+            plan=plano(x1,x2,x3,y1)
             hashes=[]
+                
+        try:
             for i in self.figuras["plano"]:
                 hashes.append(hash(i))
-            if hash(plano) not in hashes:
-                self.figuras["plano"].append(plano)
+                
+            if hash(plan) not in hashes:
+                self.figuras["plano"].append(plan)
                 
                 indices=[]
                 for i in self.figuras_num:
                     indices+=self.figuras_num[i]
-                self.figuras_num["plano"].append(max(indices)+1)
+                    
+                if not indices:
+                    self.figuras_num["plano"].append(1)
+                else:
+                    self.figuras_num["plano"].append(max(indices)+1)
+                    
                 
                 self._cambioFig()
                 self._cambio()
-
+                
+        except:
+            print("El plano no pudo ser creado")
+    
     # def _crear_linea_param(self, p1, p2, p3, x1, x2, x3):
     #     y1=(.772469*x3)*0.0001
     #     y2=(.673121*x1)*0.0001
@@ -365,8 +448,8 @@ class interfaz(tk.Tk):
             self.dialogo.geometry(tamypos)
             self.dialogo.minsize(400, 400)
             self.dialogo.maxsize(400, 400)
-            ident = self.dialogo.winfo_id()
-            titulo = str(interfaz.ventana)+": "+str(ident)
+            
+            titulo = "Paralelepipedos"
             self.dialogo.title(titulo)
             boton = ttk.Button(self.dialogo, text='CERRAR', command=self._destruir_ventana_emergente)   
             boton.pack(side=tk.BOTTOM, padx=20, pady=20)
@@ -380,7 +463,7 @@ class interfaz(tk.Tk):
                     Output.insert(tk.END, "ERROR EN CAPTURA DE DATOS!!!")
                 else:
                     Output.insert(tk.END, 'Captura de datos correcta')
-            l = tk.Label(self.dialogo, text = "GENERADOR DE PARALELEPIPEDOS")
+            l = tk.Label(self.dialogo, text = "PARALELEPIPEDOS")
             l1 = tk.Label(self.dialogo, text = "Base")
             l2 = tk.Label(self.dialogo, text = "Vector")
             inputtxt1 = tk.Text(self.dialogo, height = 2, width = 25, bg = "light yellow")
@@ -412,8 +495,8 @@ class interfaz(tk.Tk):
             self.dialogo.geometry(tamypos)
             self.dialogo.maxsize(400,400)
             self.dialogo.minsize(400,400)
-            ident = self.dialogo.winfo_id()
-            titulo = str(interfaz.ventana)+": "+str(ident)
+            
+            titulo = "Esferas"
             self.dialogo.title(titulo)
             boton = ttk.Button(self.dialogo, text='CERRAR', command=self._destruir_ventana_emergente)   
             boton.pack(side=tk.BOTTOM, padx=20, pady=20)
@@ -427,7 +510,7 @@ class interfaz(tk.Tk):
                 else:
                     Output.insert(tk.END, 'Captura de datos correcta')
                     self._crear_esfera_param(radio, posx, posy, posz)
-            l = tk.Label(self.dialogo, text = "GENERADOR DE ESFERAS")
+            l = tk.Label(self.dialogo, text = "ESFERAS")
             l1 = tk.Label(self.dialogo, text = "Radio")
             l2 = tk.Label(self.dialogo, text = "Vector posición")
             inputtxt1 = tk.Text(self.dialogo, height = 2, width = 25, bg = "light yellow")
@@ -452,6 +535,8 @@ class interfaz(tk.Tk):
     def _generar_cilindro(self):
         if interfaz.ventana<1:
             self.dialogo = tk.Toplevel()
+            fininf=tk.BooleanVar()
+            fininf.set(True)
             interfaz.ventana+=1
             interfaz.posx_y += 50
             tamypos = '200x100+'+str(interfaz.posx_y)+ \
@@ -459,45 +544,93 @@ class interfaz(tk.Tk):
             self.dialogo.geometry(tamypos)
             self.dialogo.maxsize(400,450)
             self.dialogo.minsize(400,450)
-            ident = self.dialogo.winfo_id()
-            titulo = str(interfaz.ventana)+": "+str(ident)
+            
+            titulo = "Cilindros"
             self.dialogo.title(titulo)
             boton = ttk.Button(self.dialogo, text='CERRAR', command=self._destruir_ventana_emergente)   
             boton.pack(side=tk.BOTTOM, padx=20, pady=20)
+            
             def Cilg():
-                altura = float(inputtxt1.get("1.0", "end-1c"))
-                radio = float(inputtxt2.get("1.0", "end-1c"))
-                posx = float(inputtxt3.get("1.0", "end-1c"))
-                posy = float(inputtxt4.get("1.0", "end-1c"))
-                posz = float(inputtxt5.get("1.0", "end-1c"))
-                if(radio < 0):
-                    Output.insert(tk.END, "ERROR EN CAPTURA DE DATOS!!!")
-                else:
-                    Output.insert(tk.END, 'Captura de datos correcta')
-                    self._crear_cilindro_param(altura, radio, posx, posy, posz)
+                try:
+                    vecx = float(inputtxt1.get("1.0", "end-1c"))
+                    vecy = float(inputtxt6.get("1.0", "end-1c"))
+                    vecz = float(inputtxt7.get("1.0", "end-1c"))
+                    radio = float(inputtxt2.get("1.0", "end-1c"))
+                    posx = float(inputtxt3.get("1.0", "end-1c"))
+                    posy = float(inputtxt4.get("1.0", "end-1c"))
+                    posz = float(inputtxt5.get("1.0", "end-1c"))
+                    if inputtxt8.get("1.0", "end-1c") != "" and fininf.get():
+                        radio2=float(inputtxt8.get("1.0", "end-1c"))
+                        self._crear_conot_param(vecx, vecy, vecz, radio, radio2, posx, posy, posz)
+                        
+                    if(radio < 0):
+                        
+                        Output.insert(tk.END, "El radio ingresado no es valido")
+                        
+                    elif not inputtxt8.get("1.0", "end-1c"):
+                        
+                        Output.insert(tk.END, 'Captura de datos correcta')
+                        if not fininf.get():
+                            if not self.lejos:
+                                v=vector(vecx,vecy,vecz)*100
+                                p=punto(posx,posy,posz).mover(v*(-1/2))
+                                self._crear_cilindro_param(v[0], v[1], v[2],
+                                                           radio, p.x, p.y, p.z)
+                            elif self.lejos:
+                                v=vector(vecx,vecy,vecz)*self.lejos
+                                p=punto(posx,posy,posz).mover(v*(-1/2))
+                                self._crear_cilindro_param(v[0], v[1], v[2],
+                                                           radio, p.x, p.y, p.z)
+                        elif fininf.get():        
+                            self._crear_cilindro_param(vecx, vecy, vecz, radio, posx, posy, posz)
+                        
+                except:
+                    Output.insert(tk.END, "Uno o mas valores no son validos")
+                
+                
+                    
+            frameVec=tk.Frame(self.dialogo)
+            frameVec.place(relx=0.1, rely=0.05, relwidth=0.8)
+            frameRad=tk.Frame(self.dialogo)
+            frameRad.place(relx=0.1, rely=0.2, relwidth=0.8, relheight=0.15)
+            framePos=tk.Frame(self.dialogo)
+            framePos.place(relx=0.1, rely=0.35, relwidth=0.8)
                     
             l = tk.Label(self.dialogo, text = "GENERADOR DE CILINDROS")
-            l1 = tk.Label(self.dialogo, text = "Altura")
-            l3 = tk.Label(self.dialogo, text = "Vector posición")
-            l2 = tk.Label(self.dialogo, text = "Radio")
-            inputtxt1 = tk.Text(self.dialogo, height = 2, width = 25, bg = "light yellow")
-            inputtxt2 = tk.Text(self.dialogo, height = 2, width = 25, bg = "light yellow")
-            inputtxt3 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
-            inputtxt4 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
-            inputtxt5 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
+            l1 = tk.Label(frameVec, text = "Vector dirección")
+            l3 = tk.Label(framePos, text = "Posición")
+            l2 = tk.Label(frameRad, text = "Radio")
+            l4 = tk.Label(frameRad, text = "Radio 2 (Opcional)")
+            
+            inputtxt1 = tk.Text(frameVec, height = 2, width = 12, bg = "light yellow")
+            inputtxt6 = tk.Text(frameVec, height = 2, width = 12, bg = "light yellow")
+            inputtxt7 = tk.Text(frameVec, height = 2, width = 12, bg = "light yellow")
+            inputtxt2 = tk.Text(frameRad, height = 2, width = 12, bg = "light yellow")
+            inputtxt3 = tk.Text(framePos, height = 2, width = 12, bg = "light yellow")
+            inputtxt4 = tk.Text(framePos, height = 2, width = 12, bg = "light yellow")
+            inputtxt5 = tk.Text(framePos, height = 2, width = 12, bg = "light yellow")
+            inputtxt8 = tk.Text(frameRad, height = 2, width = 12, bg = "light yellow")
             Output = tk.Text(self.dialogo, height = 2, width = 25, bg = "light cyan")
+            tk.Radiobutton(self.dialogo, text="Finito",variable=fininf, value=True).\
+                place(relx=0.2, rely=0.5)
+            tk.Radiobutton(self.dialogo, text="Ininito",variable=fininf, value=False).\
+                place(relx=0.5, rely=0.5)
             Output.pack(side=tk.BOTTOM, padx=20, pady=20)
             Crearr = tk.Button(self.dialogo, height = 2, width = 20, text ="CREAR", command = lambda:Cilg())
             Crearr.pack(side=tk.BOTTOM, padx=20, pady=20)
             l.pack()
             l1.pack()
-            inputtxt1.pack()
-            l2.pack()
-            inputtxt2.pack()
+            inputtxt1.pack(side=tk.LEFT, anchor='n', padx=5, pady=5)
+            inputtxt6.pack(side=tk.LEFT, anchor='n', padx=5, pady=5)
+            inputtxt7.pack(side=tk.LEFT, anchor='n', padx=5, pady=5)
+            l2.place(relx=0.25, rely=0.05)
+            inputtxt2.place(relx=0.15, rely=0.5)
+            l4.place(relx=0.6, rely=0.05)
+            inputtxt8.place(relx=0.6, rely=0.5)
             l3.pack()
-            inputtxt3.pack(side=tk.LEFT, anchor='n', padx=20, pady=20)
-            inputtxt4.pack(side=tk.LEFT, anchor='n', padx=20, pady=20)
-            inputtxt5.pack(side=tk.LEFT, anchor='n', padx=20, pady=20)
+            inputtxt3.pack(side=tk.LEFT, anchor='n', padx=5, pady=5)
+            inputtxt4.pack(side=tk.LEFT, anchor='n', padx=5, pady=5)
+            inputtxt5.pack(side=tk.LEFT, anchor='n', padx=5, pady=5)
             self.dialogo.protocol("WM_DELETE_WINDOW", self._cerrado_tacha)
         else:
             print("Por favor cierre la otra ventana emergente")
@@ -512,9 +645,9 @@ class interfaz(tk.Tk):
             self.dialogo.geometry(tamypos)
             self.dialogo.maxsize(400,400)
             self.dialogo.minsize(400,400)
-            ident = self.dialogo.winfo_id()
-            titulo = str(interfaz.ventana)+": "+str(ident)
-            self.dialogo.title(titulo)
+            
+            #titulo = str(interfaz.ventana)+": "+str(ident)
+            #self.dialogo.title(titulo)
             boton = ttk.Button(self.dialogo, text='CERRAR', command=self._destruir_ventana_emergente)   
             boton.pack(side=tk.BOTTOM, padx=20, pady=20)
             def Pung():
@@ -564,8 +697,8 @@ class interfaz(tk.Tk):
             self.dialogo.geometry(tamypos)
             self.dialogo.maxsize(400,500)
             self.dialogo.minsize(400,500)
-            ident = self.dialogo.winfo_id()
-            titulo = str(interfaz.ventana)+": "+str(ident)
+            
+            titulo = "Paralelepipedos"
             self.dialogo.title(titulo)
             boton = ttk.Button(self.dialogo, text='CERRAR', command=self._destruir_ventana_emergente)   
             boton.pack(side=tk.BOTTOM, padx=20, pady=20)
@@ -584,36 +717,36 @@ class interfaz(tk.Tk):
                 z3= float(inputtxt12.get("1.0", "end-1c"))
                 self._crear_prisma_param(b1, b2, b3, x1, x2, x3, y1, y2, y3, z1, z2, z3)
                 Output.insert(tk.END, 'Captura de datos correcta')          
-            l1 = tk.Label(self.dialogo, text = "Vector posición").place(relx=0.7, rely=0.075, relheight=0.085, relwidth=0.4, anchor="ne")
-            l = tk.Label(self.dialogo, text = "GENERADOR DE PARALELEPIPEDOS").place(relx=0.7, rely=0.015, relheight=0.085, relwidth=0.4, anchor="ne")
+            tk.Label(self.dialogo, text = "Vector posición").place(relx=0.7, rely=0.075, relheight=0.085, relwidth=0.4, anchor="ne")
+            tk.Label(self.dialogo, text = "PARALELEPIPEDOS").place(relx=0.7, rely=0.015, relheight=0.085, relwidth=0.4, anchor="ne")
             inputtxt1 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
             inputtxt1.place(relx=0.3, rely=0.145, relheight=0.07, relwidth=0.2, anchor="ne")
             inputtxt2 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
             inputtxt2.place(relx=0.6, rely=0.145, relheight=0.07, relwidth=0.2, anchor="ne")
             inputtxt3 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
             inputtxt3.place(relx=0.9, rely=0.145, relheight=0.07, relwidth=0.2, anchor="ne")
-            l2 = tk.Label(self.dialogo, text = "Vector 1").place(relx=0.7, rely=0.245, relheight=0.085, relwidth=0.4, anchor="ne")
+            tk.Label(self.dialogo, text = "Vector 1").place(relx=0.7, rely=0.245, relheight=0.085, relwidth=0.4, anchor="ne")
             inputtxt4 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
             inputtxt4.place(relx=0.3, rely=0.305, relheight=0.07, relwidth=0.2, anchor="ne")
             inputtxt5 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
             inputtxt5.place(relx=0.6, rely=0.305, relheight=0.07, relwidth=0.2, anchor="ne")
             inputtxt6 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
             inputtxt6.place(relx=0.9, rely=0.305, relheight=0.07, relwidth=0.2, anchor="ne")
-            l3 = tk.Label(self.dialogo, text = "Vector 2").place(relx=0.7, rely=0.405, relheight=0.085, relwidth=0.4, anchor="ne")
+            tk.Label(self.dialogo, text = "Vector 2").place(relx=0.7, rely=0.405, relheight=0.085, relwidth=0.4, anchor="ne")
             inputtxt7 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
             inputtxt7.place(relx=0.3, rely=0.465, relheight=0.07, relwidth=0.2, anchor="ne")
             inputtxt8 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
             inputtxt8.place(relx=0.6, rely=0.465, relheight=0.07, relwidth=0.2, anchor="ne")
             inputtxt9 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
             inputtxt9.place(relx=0.9, rely=0.465, relheight=0.07, relwidth=0.2, anchor="ne")
-            l4 = tk.Label(self.dialogo, text = "Vector 3").place(relx=0.7, rely=0.565, relheight=0.085, relwidth=0.4, anchor="ne")
+            tk.Label(self.dialogo, text = "Vector 3").place(relx=0.7, rely=0.565, relheight=0.085, relwidth=0.4, anchor="ne")
             inputtxt10 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
             inputtxt10.place(relx=0.3, rely=0.625, relheight=0.07, relwidth=0.2, anchor="ne")
             inputtxt11 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
             inputtxt11.place(relx=0.6, rely=0.625, relheight=0.07, relwidth=0.2, anchor="ne")
             inputtxt12 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
             inputtxt12.place(relx=0.9, rely=0.625, relheight=0.07, relwidth=0.2, anchor="ne")
-            Crearr = tk.Button(self.dialogo, height = 2, width = 20, text ="CREAR FIGURA", command = lambda:Prisg()).place(relx=0.7, rely=0.725, relheight=0.085, relwidth=0.4, anchor="ne")    
+            tk.Button(self.dialogo, height = 2, width = 20, text ="CREAR FIGURA", command = lambda:Prisg()).place(relx=0.7, rely=0.725, relheight=0.085, relwidth=0.4, anchor="ne")    
             Output = tk.Text(self.dialogo, height = 2, width = 25, bg = "light cyan")
             Output.place(relx=0.7, rely=0.8, relheight=0.085, relwidth=0.4, anchor="ne")
             self.dialogo.protocol("WM_DELETE_WINDOW", self._cerrado_tacha)
@@ -630,38 +763,163 @@ class interfaz(tk.Tk):
             self.dialogo.geometry(tamypos)
             self.dialogo.maxsize(400,400)
             self.dialogo.minsize(400,400)
-            ident = self.dialogo.winfo_id()
-            titulo = str(interfaz.ventana)+": "+str(ident)
+            
+            titulo = "Plano"
+            op=tk.IntVar()
+            op.set(1)
+            
+            def cambio():
+                frameparam.place_forget()
+                framevvp.place_forget()
+                framevpp.place_forget()
+                
+                if op.get() == 1:
+                    
+                    framevvp.place(relx=0, relwidth=1,rely=0.15, relheight=0.535)
+                    
+                elif op.get() == 2:
+                    
+                    framevpp.place(relx=0, relwidth=1,rely=0.15, relheight=0.535)
+                    
+                elif op.get() == 3:
+                    
+                    frameparam.place(relx=0, relwidth=1,rely=0.15, relheight=0.535)
+            
+            tk.Radiobutton(self.dialogo, text="VVP", value=1,variable=op, command=cambio)\
+                        .place(relx=0.02, rely=0.05, relheight=0.13)
+                        
+            tk.Radiobutton(self.dialogo, text="PPP", value=2,variable=op, command=cambio)\
+                        .place(relx=0.32, rely=0.05, relheight=0.13)
+                        
+            tk.Radiobutton(self.dialogo, text="Param", value=3,variable=op, command=cambio)\
+                        .place(relx=0.62, rely=0.05, relheight=0.13)
+                        
             self.dialogo.title(titulo)
+            tk.Label(self.dialogo, text = "PLANOS").place(relx=0.7, rely=0.015, relheight=0.085, relwidth=0.4, anchor="ne")
             boton = ttk.Button(self.dialogo, text='CERRAR', command=self._destruir_ventana_emergente)   
             boton.pack(side=tk.BOTTOM, padx=20, pady=20)
             def Plag():
-                x1= float(inputtxt1.get("1.0", "end-1c"))
-                x2= float(inputtxt2.get("1.0", "end-1c"))
-                x3= float(inputtxt3.get("1.0", "end-1c"))
-                y1= float(inputtxt4.get("1.0", "end-1c"))
-                y2= float(inputtxt5.get("1.0", "end-1c"))
-                y3= float(inputtxt6.get("1.0", "end-1c"))
-                self._crear_plano_param(x1, x2, x3, y1, y2, y3)
-                Output.insert(tk.END, 'Captura de datos correcta')               
-            l1 = tk.Label(self.dialogo, text = "Vector 1").place(relx=0.7, rely=0.075, relheight=0.085, relwidth=0.4, anchor="ne")
-            l = tk.Label(self.dialogo, text = "GENERADOR DE PLANOS").place(relx=0.7, rely=0.015, relheight=0.085, relwidth=0.4, anchor="ne")
-            inputtxt1 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
-            inputtxt1 .place(relx=0.3, rely=0.145, relheight=0.07, relwidth=0.2, anchor="ne")
-            inputtxt2 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
-            inputtxt2.place(relx=0.6, rely=0.145, relheight=0.07, relwidth=0.2, anchor="ne")
-            inputtxt3 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
-            inputtxt3.place(relx=0.9, rely=0.145, relheight=0.07, relwidth=0.2, anchor="ne")
-            l2 = tk.Label(self.dialogo, text = "Vector 2").place(relx=0.7, rely=0.245, relheight=0.085, relwidth=0.4, anchor="ne")
-            inputtxt4 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
-            inputtxt4.place(relx=0.3, rely=0.305, relheight=0.07, relwidth=0.2, anchor="ne")
-            inputtxt5 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
-            inputtxt5.place(relx=0.6, rely=0.305, relheight=0.07, relwidth=0.2, anchor="ne")
-            inputtxt6 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
-            inputtxt6.place(relx=0.9, rely=0.305, relheight=0.07, relwidth=0.2, anchor="ne")
-            Crearr = tk.Button(self.dialogo, height = 2, width = 20, text ="CREAR PLANO", command = lambda:Plag()).place(relx=0.7, rely=0.405, relheight=0.085, relwidth=0.4, anchor="ne")    
+                
+                if op.get() == 1:
+                    try:
+                        x1= float(inputtxt1.get("1.0", "end-1c"))
+                        x2= float(inputtxt2.get("1.0", "end-1c"))
+                        x3= float(inputtxt3.get("1.0", "end-1c"))
+                        y1= float(inputtxt4.get("1.0", "end-1c"))
+                        y2= float(inputtxt5.get("1.0", "end-1c"))
+                        y3= float(inputtxt6.get("1.0", "end-1c"))
+                        p1= float(inputtxt7.get("1.0", "end-1c"))
+                        p2= float(inputtxt8.get("1.0", "end-1c"))
+                        p3= float(inputtxt9.get("1.0", "end-1c"))
+                        self._crear_plano_param(x1, x2, x3, y1, y2, y3, p1, p2, p3)
+                        Output.insert(tk.END, 'Captura de datos correcta') 
+                        
+                    except:
+                        Output.insert(tk.END, "No se pudo crear la supereficie")
+                        
+                elif op.get() == 2:
+                    try:
+                        x1= float(p1x.get("1.0", "end-1c"))
+                        x2= float(p1y.get("1.0", "end-1c"))
+                        x3= float(p1z.get("1.0", "end-1c"))
+                        y1= float(p2x.get("1.0", "end-1c"))
+                        y2= float(p2y.get("1.0", "end-1c"))
+                        y3= float(p2z.get("1.0", "end-1c"))
+                        p1= float(p3x.get("1.0", "end-1c"))
+                        p2= float(p3y.get("1.0", "end-1c"))
+                        p3= float(p3z.get("1.0", "end-1c"))
+                        self._crear_plano_param(x1, x2, x3, y1, y2, y3, p1, p2, p3, op=2)
+                        Output.insert(tk.END, 'Captura de datos correcta') 
+                        
+                    except:
+                        Output.insert(tk.END, "No se pudo crear la supereficie")
+                        
+                elif op.get() == 3:
+                    try:
+                        x1= float(a.get("1.0", "end-1c"))
+                        x2= float(b.get("1.0", "end-1c"))
+                        x3= float(c.get("1.0", "end-1c"))
+                        y1= float(d.get("1.0", "end-1c"))
+                        y2= ""
+                        y3= ""
+                        p1= ""
+                        p2= ""
+                        p3= ""
+                        self._crear_plano_param(x1, x2, x3, y1, y2, y3, p1, p2, p3, op=3)
+                        Output.insert(tk.END, 'Captura de datos correcta') 
+                        
+                    except:
+                        Output.insert(tk.END, "No se pudo crear la supereficie")
+ 
+            framevvp=tk.Frame(self.dialogo)   
+            
+            tk.Label(framevvp, text = "Vector 1").place(relx=0.7, rely=0.075, relheight=0.085, relwidth=0.4, anchor="ne")
+            inputtxt1 = tk.Text(framevvp, height = 2, width = 12, bg = "light yellow")
+            inputtxt1 .place(relx=0.3, rely=0.175, relheight=0.1, relwidth=0.2, anchor="ne")
+            inputtxt2 = tk.Text(framevvp, height = 2, width = 12, bg = "light yellow")
+            inputtxt2.place(relx=0.6, rely=0.175, relheight=0.1, relwidth=0.2, anchor="ne")
+            inputtxt3 = tk.Text(framevvp, height = 2, width = 12, bg = "light yellow")
+            inputtxt3.place(relx=0.9, rely=0.175, relheight=0.1, relwidth=0.2, anchor="ne")
+            tk.Label(framevvp, text = "Vector 2").place(relx=0.7, rely=0.305, relheight=0.085, relwidth=0.4, anchor="ne")
+            inputtxt4 = tk.Text(framevvp, height = 2, width = 12, bg = "light yellow")
+            inputtxt4.place(relx=0.3, rely=0.405, relheight=0.1, relwidth=0.2, anchor="ne")
+            inputtxt5 = tk.Text(framevvp, height = 2, width = 12, bg = "light yellow")
+            inputtxt5.place(relx=0.6, rely=0.405, relheight=0.1, relwidth=0.2, anchor="ne")
+            inputtxt6 = tk.Text(framevvp, height = 2, width = 12, bg = "light yellow")
+            inputtxt6.place(relx=0.9, rely=0.405, relheight=0.1, relwidth=0.2, anchor="ne")
+            tk.Label(framevvp, text = "Punto").place(relx=0.7, rely=0.585, relheight=0.085, relwidth=0.4, anchor="ne")
+            inputtxt7 = tk.Text(framevvp, height = 2, width = 12, bg = "light yellow")
+            inputtxt7.place(relx=0.3, rely=0.665, relheight=0.1, relwidth=0.2, anchor="ne")
+            inputtxt8 = tk.Text(framevvp, height = 2, width = 12, bg = "light yellow")
+            inputtxt8.place(relx=0.6, rely=0.665, relheight=0.1, relwidth=0.2, anchor="ne")
+            inputtxt9 = tk.Text(framevvp, height = 2, width = 12, bg = "light yellow")
+            inputtxt9.place(relx=0.9, rely=0.665, relheight=0.1, relwidth=0.2, anchor="ne")
+            
+            framevpp=tk.Frame(self.dialogo)   
+            
+            tk.Label(framevpp, text = "Punto 1").place(relx=0.7, rely=0.075, relheight=0.085, relwidth=0.4, anchor="ne")
+            p1x = tk.Text(framevpp, height = 2, width = 12, bg = "light yellow")
+            p1x .place(relx=0.3, rely=0.175, relheight=0.1, relwidth=0.2, anchor="ne")
+            p1y = tk.Text(framevpp, height = 2, width = 12, bg = "light yellow")
+            p1y.place(relx=0.6, rely=0.175, relheight=0.1, relwidth=0.2, anchor="ne")
+            p1z = tk.Text(framevpp, height = 2, width = 12, bg = "light yellow")
+            p1z.place(relx=0.9, rely=0.175, relheight=0.1, relwidth=0.2, anchor="ne")
+            tk.Label(framevpp, text = "Punto 2").place(relx=0.7, rely=0.305, relheight=0.085, relwidth=0.4, anchor="ne")
+            p2x = tk.Text(framevpp, height = 2, width = 12, bg = "light yellow")
+            p2x.place(relx=0.3, rely=0.405, relheight=0.1, relwidth=0.2, anchor="ne")
+            p2y = tk.Text(framevpp, height = 2, width = 12, bg = "light yellow")
+            p2y.place(relx=0.6, rely=0.405, relheight=0.1, relwidth=0.2, anchor="ne")
+            p2z = tk.Text(framevpp, height = 2, width = 12, bg = "light yellow")
+            p2z.place(relx=0.9, rely=0.405, relheight=0.1, relwidth=0.2, anchor="ne")
+            tk.Label(framevpp, text = "Punto 3").place(relx=0.7, rely=0.585, relheight=0.085, relwidth=0.4, anchor="ne")
+            p3x = tk.Text(framevpp, height = 2, width = 12, bg = "light yellow")
+            p3x.place(relx=0.3, rely=0.665, relheight=0.1, relwidth=0.2, anchor="ne")
+            p3y = tk.Text(framevpp, height = 2, width = 12, bg = "light yellow")
+            p3y.place(relx=0.6, rely=0.665, relheight=0.1, relwidth=0.2, anchor="ne")
+            p3z = tk.Text(framevpp, height = 2, width = 12, bg = "light yellow")
+            p3z.place(relx=0.9, rely=0.665, relheight=0.1, relwidth=0.2, anchor="ne")
+            
+            frameparam=tk.Frame(self.dialogo) 
+            
+            tk.Label(frameparam, text = "A").place(relx=0.7, rely=0.075, relheight=0.085, relwidth=0.4, anchor="ne")
+            a = tk.Text(frameparam, height = 2, width = 12, bg = "light yellow")
+            a.place(relx=0.6, rely=0.175, relheight=0.1, relwidth=0.2, anchor="ne")
+            tk.Label(frameparam, text = "B").place(relx=0.7, rely=0.305, relheight=0.085, relwidth=0.4, anchor="ne")
+            b = tk.Text(frameparam, height = 2, width = 12, bg = "light yellow")
+            b.place(relx=0.6, rely=0.405, relheight=0.1, relwidth=0.2, anchor="ne")
+            tk.Label(frameparam, text = "C").place(relx=0.7, rely=0.585, relheight=0.085, relwidth=0.4, anchor="ne")
+            c = tk.Text(frameparam, height = 2, width = 12, bg = "light yellow")
+            c.place(relx=0.6, rely=0.665, relheight=0.1, relwidth=0.2, anchor="ne")
+            tk.Label(frameparam, text = "D").place(relx=0.7, rely=0.785, relheight=0.085, relwidth=0.4, anchor="ne")
+            d = tk.Text(frameparam, height = 2, width = 12, bg = "light yellow")
+            d.place(relx=0.6, rely=0.885, relheight=0.1, relwidth=0.2, anchor="ne")
+            
+            cambio()
+            
+            
+            tk.Button(self.dialogo, height = 2, width = 20, text ="CREAR PLANO", command = lambda:Plag()).place(relx=0.7, rely=0.685, relheight=0.085, relwidth=0.4, anchor="ne")    
             Output = tk.Text(self.dialogo, height = 2, width = 25, bg = "light cyan")
-            Output.place(relx=0.7, rely=0.505, relheight=0.085, relwidth=0.4, anchor="ne")
+            Output.place(relx=0.7, rely=0.765, relheight=0.085, relwidth=0.4, anchor="ne")
             self.dialogo.protocol("WM_DELETE_WINDOW", self._cerrado_tacha)
         else:
             print("Por favor cierre la otra ventana emergente")
@@ -677,10 +935,11 @@ class interfaz(tk.Tk):
             for geom in self.figuras:
                 if geom == "plano":
                     for fig in self.figuras[geom]:
-                        #print(str(fig) + "hola")
-                        
-                        lejos=abs((self.rec.punto_central.apunta()-self.rec.poligonos_convexos[0].puntos[0].apunta()).magn())*0.45
-                        
+                        try:
+                            lejos=abs((self.rec.punto_central.apunta()-self.rec.poligonos_convexos[0].puntos[0].apunta()).magn())*0.45
+                        except AttributeError:
+                            lejos=100
+                            
                         verticesp=geomRenderVerticesP2(fig, verticesp, lejos=lejos)
                         
                         if not verticesp:

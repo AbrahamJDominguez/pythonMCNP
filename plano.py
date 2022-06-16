@@ -63,7 +63,7 @@ class plano(objeto):
             #print(abs(b.apunta()*self.n-self.p.apunta()*self.n))
             return abs(b.apunta()*self.n-self.p.apunta()*self.n)<FLOAT_EPS
         if isinstance(b,linea):
-            return punto(b.il) in self and paralelo(self,b)
+            return punto(b.il) in self and self.paralelo(b)
         elif b.clase>self.clase:
             b.in_(self)
         else:
