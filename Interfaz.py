@@ -136,7 +136,7 @@ class interfaz(tk.Tk):
         #         Lector = tk.Text(self.dial, height =30, width = 100, bg = "light cyan")
         #         Sescri = tk.Button(self.dial, height = 2, width = 20, text = "GUARDAR", command = lambda:escribir())
         #         cerrar = tk.Button(self.dial, height = 2, width = 20, text='CERRAR', command=destruir)
-        #         Lector.insert(tk.END, self.arbr.read())
+        #         Lector.insert(0, self.arbr.read())
         #         Lector.pack()
         #         Sescri.pack()
         #         cerrar.pack()
@@ -256,6 +256,7 @@ class interfaz(tk.Tk):
             txt=geomaMCNP(self.figuras, self.figuras_num, self.rec)
             
         print(txt)
+        
         with open("cache.txt", "w") as archivo:
             archivo.write(txt)
             
@@ -454,15 +455,22 @@ class interfaz(tk.Tk):
             boton = ttk.Button(self.dialogo, text='CERRAR', command=self._destruir_ventana_emergente)   
             boton.pack(side=tk.BOTTOM, padx=20, pady=20)
             def Cubog():
-                base = float(inputtxt1.get("1.0", "end-1c"))
-                posx = float(inputtxt2.get("1.0", "end-1c"))
-                posy = float(inputtxt3.get("1.0", "end-1c"))
-                posz = float(inputtxt4.get("1.0", "end-1c"))
-                self._crear_cubo_param(base, posx, posy, posz)
-                if(base < 0):
-                    Output.insert(tk.END, "ERROR EN CAPTURA DE DATOS!!!")
-                else:
-                    Output.insert(tk.END, 'Captura de datos correcta')
+                try:
+                    base = float(inputtxt1.get("1.0", "end-1c"))
+                    posx = float(inputtxt2.get("1.0", "end-1c"))
+                    posy = float(inputtxt3.get("1.0", "end-1c"))
+                    posz = float(inputtxt4.get("1.0", "end-1c"))
+                    self._crear_cubo_param(base, posx, posy, posz)
+                    if(base < 0):
+                        Output.delete(1.0, "end")
+                        Output.insert(1.0, "No se pudo crear la superficie")
+                    else:
+                        Output.delete(1.0, "end")
+                        Output.insert(1.0, 'Captura de datos correcta')
+                        
+                except ValueError:
+                    Output.delete(1.0, "end")
+                    Output.insert(1.0, 'Uno o mas valores no son validos')
             l = tk.Label(self.dialogo, text = "PARALELEPIPEDOS")
             l1 = tk.Label(self.dialogo, text = "Base")
             l2 = tk.Label(self.dialogo, text = "Vector")
@@ -501,15 +509,24 @@ class interfaz(tk.Tk):
             boton = ttk.Button(self.dialogo, text='CERRAR', command=self._destruir_ventana_emergente)   
             boton.pack(side=tk.BOTTOM, padx=20, pady=20)
             def Esfeg():
-                radio = float(inputtxt1.get("1.0", "end-1c"))
-                posx = float(inputtxt2.get("1.0", "end-1c"))
-                posy = float(inputtxt3.get("1.0", "end-1c"))
-                posz = float(inputtxt4.get("1.0", "end-1c"))
-                if(radio == 0):
-                    Output.insert(tk.END, "ERROR EN CAPTURA DE DATOS!!!")
-                else:
-                    Output.insert(tk.END, 'Captura de datos correcta')
-                    self._crear_esfera_param(radio, posx, posy, posz)
+                try:
+                    radio = float(inputtxt1.get("1.0", "end-1c"))
+                    posx = float(inputtxt2.get("1.0", "end-1c"))
+                    posy = float(inputtxt3.get("1.0", "end-1c"))
+                    posz = float(inputtxt4.get("1.0", "end-1c"))
+                    
+                    if(radio == 0):
+                        Output.delete(1.0, "end")
+                        Output.insert(1.0, "No se pudo crear la superficie")
+                    else:
+                        Output.delete(1.0, "end")
+                        Output.insert(1.0, 'Captura de datos correcta')
+                        self._crear_esfera_param(radio, posx, posy, posz)
+                        
+                except ValueError:
+                    Output.delete(1.0, "end")
+                    Output.insert(1.0, "Uno o mas valores no son validos")
+                    
             l = tk.Label(self.dialogo, text = "ESFERAS")
             l1 = tk.Label(self.dialogo, text = "Radio")
             l2 = tk.Label(self.dialogo, text = "Vector posición")
@@ -564,12 +581,12 @@ class interfaz(tk.Tk):
                         self._crear_conot_param(vecx, vecy, vecz, radio, radio2, posx, posy, posz)
                         
                     if(radio < 0):
-                        
-                        Output.insert(tk.END, "El radio ingresado no es valido")
+                        Output.delete(1.0,"end")
+                        Output.insert(1.0, "El radio ingresado no es valido")
                         
                     elif not inputtxt8.get("1.0", "end-1c"):
-                        
-                        Output.insert(tk.END, 'Captura de datos correcta')
+                        Output.delete(1.0,"end")
+                        Output.insert(1.0, 'Captura de datos correcta')
                         if not fininf.get():
                             if not self.lejos:
                                 v=vector(vecx,vecy,vecz)*100
@@ -585,7 +602,8 @@ class interfaz(tk.Tk):
                             self._crear_cilindro_param(vecx, vecy, vecz, radio, posx, posy, posz)
                         
                 except:
-                    Output.insert(tk.END, "Uno o mas valores no son validos")
+                    Output.delete(1.0,"end")
+                    Output.insert(1.0, "Uno o mas valores no son validos")
                 
                 
                     
@@ -654,17 +672,24 @@ class interfaz(tk.Tk):
                 x1 = float(inputtxt1.get("1.0", "end-1c"))
                 x2 = float(inputtxt2.get("1.0", "end-1c"))
                 x3 = float(inputtxt3.get("1.0", "end-1c"))
-                Output.insert(tk.END, 'Captura de datos correcta')
+                Output.delete(1.0,"end")
+                Output.insert(1.0, 'Captura de datos correcta')
                 self._crear_punto_param(x1,x2,x3)
             def Ling():
-                x1 = float(inputtxt1.get("1.0", "end-1c"))
-                x2 = float(inputtxt2.get("1.0", "end-1c"))
-                x3 = float(inputtxt3.get("1.0", "end-1c"))
-                y1 = float(inputtxt4.get("1.0", "end-1c"))
-                y2 = float(inputtxt5.get("1.0", "end-1c"))
-                y3 = float(inputtxt6.get("1.0", "end-1c"))
-                Output.insert(tk.END, 'Captura de datos correcta')
-                self._crear_punto_param(x1,x2,x3,y1,y2,y3)            
+                try:
+                    x1 = float(inputtxt1.get("1.0", "end-1c"))
+                    x2 = float(inputtxt2.get("1.0", "end-1c"))
+                    x3 = float(inputtxt3.get("1.0", "end-1c"))
+                    y1 = float(inputtxt4.get("1.0", "end-1c"))
+                    y2 = float(inputtxt5.get("1.0", "end-1c"))
+                    y3 = float(inputtxt6.get("1.0", "end-1c"))
+                    Output.delete(1.0, "end")
+                    Output.insert(1.0, 'Captura de datos correcta')
+                    self._crear_punto_param(x1,x2,x3,y1,y2,y3) 
+                except ValueError:
+                    Output.delete(1.0, "end")
+                    Output.insert(1.0, 'Los valores ingresados no son validos')
+                    
             l1 = tk.Label(self.dialogo, text = "Punto").place(relx=0.7, rely=0.075, relheight=0.085, relwidth=0.4, anchor="ne")
             l = tk.Label(self.dialogo, text = "DIBUJA PUNTOS Y LINEAS").place(relx=0.7, rely=0.015, relheight=0.085, relwidth=0.4, anchor="ne")
             inputtxt1 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
@@ -716,7 +741,8 @@ class interfaz(tk.Tk):
                 z2= float(inputtxt11.get("1.0", "end-1c"))
                 z3= float(inputtxt12.get("1.0", "end-1c"))
                 self._crear_prisma_param(b1, b2, b3, x1, x2, x3, y1, y2, y3, z1, z2, z3)
-                Output.insert(tk.END, 'Captura de datos correcta')          
+                Output.insert(1.0, 'Captura de datos correcta')   
+                
             tk.Label(self.dialogo, text = "Vector posición").place(relx=0.7, rely=0.075, relheight=0.085, relwidth=0.4, anchor="ne")
             tk.Label(self.dialogo, text = "PARALELEPIPEDOS").place(relx=0.7, rely=0.015, relheight=0.085, relwidth=0.4, anchor="ne")
             inputtxt1 = tk.Text(self.dialogo, height = 2, width = 12, bg = "light yellow")
@@ -812,10 +838,12 @@ class interfaz(tk.Tk):
                         p2= float(inputtxt8.get("1.0", "end-1c"))
                         p3= float(inputtxt9.get("1.0", "end-1c"))
                         self._crear_plano_param(x1, x2, x3, y1, y2, y3, p1, p2, p3)
-                        Output.insert(tk.END, 'Captura de datos correcta') 
+                        Output.delete(1.0, "end")
+                        Output.insert(1.0, 'Captura de datos correcta')
                         
                     except:
-                        Output.insert(tk.END, "No se pudo crear la supereficie")
+                        Output.delete(1.0, "end")
+                        Output.insert(1.0, "Uno o más valores no son validos")
                         
                 elif op.get() == 2:
                     try:
@@ -829,10 +857,12 @@ class interfaz(tk.Tk):
                         p2= float(p3y.get("1.0", "end-1c"))
                         p3= float(p3z.get("1.0", "end-1c"))
                         self._crear_plano_param(x1, x2, x3, y1, y2, y3, p1, p2, p3, op=2)
-                        Output.insert(tk.END, 'Captura de datos correcta') 
+                        Output.delete(1.0, "end")
+                        Output.insert(1.0, 'Captura de datos correcta') 
                         
                     except:
-                        Output.insert(tk.END, "No se pudo crear la supereficie")
+                        Output.delete(1.0, "end")
+                        Output.insert(1.0, "Uno o mas valores no son validos")
                         
                 elif op.get() == 3:
                     try:
@@ -846,10 +876,12 @@ class interfaz(tk.Tk):
                         p2= ""
                         p3= ""
                         self._crear_plano_param(x1, x2, x3, y1, y2, y3, p1, p2, p3, op=3)
-                        Output.insert(tk.END, 'Captura de datos correcta') 
+                        Output.delete(1.0, "end")
+                        Output.insert(1.0, 'Captura de datos correcta') 
                         
                     except:
-                        Output.insert(tk.END, "No se pudo crear la supereficie")
+                        Output.delete(1.0, "end")
+                        Output.insert(1.0, "Uno o mas valores no son validos")
  
             framevvp=tk.Frame(self.dialogo)   
             
